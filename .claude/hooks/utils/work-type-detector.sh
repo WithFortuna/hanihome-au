@@ -83,17 +83,20 @@ analyze_transcript_for_features() {
     if [[ -f "$transcript" ]]; then
         # Check for feature development keywords
         local feature_keywords
-        feature_keywords=$(grep -ic "implement\|develop\|create.*function\|add.*feature\|build.*component" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${feature_keywords:-0}))
+        feature_keywords=$(safe_numeric "grep -ic 'implement\|develop\|create.*function\|add.*feature\|build.*component' '$transcript'")
+        score=$((score + feature_keywords))
+        
         local code_files
-        code_files=$(grep -ic "\.java\|\.js\|\.ts\|\.py\|\.go\|\.rs\|\.cpp" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${code_files:-0}))
+        code_files=$(safe_numeric "grep -ic '\\.java\|\\.js\|\\.ts\|\\.py\|\\.go\|\\.rs\|\\.cpp' '$transcript'")
+        score=$((score + code_files))
+        
         local task_keywords
-        task_keywords=$(grep -ic "task.*\(pending\|in-progress\|completed\)" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${task_keywords:-0}))
+        task_keywords=$(safe_numeric "grep -ic 'task.*\\(pending\\|in-progress\\|completed\\)' '$transcript'")
+        score=$((score + task_keywords))
+        
         local api_keywords
-        api_keywords=$(grep -ic "api\|endpoint\|service\|controller\|repository" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${api_keywords:-0}))
+        api_keywords=$(safe_numeric "grep -ic 'api\|endpoint\|service\|controller\|repository' '$transcript'")
+        score=$((score + api_keywords))
     fi
     
     echo "$score"
@@ -107,14 +110,16 @@ analyze_transcript_for_docs() {
     if [[ -f "$transcript" ]]; then
         # Check for documentation keywords
         local doc_keywords
-        doc_keywords=$(grep -ic "document\|readme\|guide\|\.md\|\.txt" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${doc_keywords:-0}))
+        doc_keywords=$(safe_numeric "grep -ic 'document\|readme\|guide\|\\.md\|\\.txt' '$transcript'")
+        score=$((score + doc_keywords))
+        
         local doc_actions
-        doc_actions=$(grep -ic "write.*doc\|create.*guide\|update.*readme" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${doc_actions:-0}))
+        doc_actions=$(safe_numeric "grep -ic 'write.*doc\|create.*guide\|update.*readme' '$transcript'")
+        score=$((score + doc_actions))
+        
         local explain_keywords
-        explain_keywords=$(grep -ic "explain\|describe\|how to\|tutorial" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${explain_keywords:-0}))
+        explain_keywords=$(safe_numeric "grep -ic 'explain\|describe\|how to\|tutorial' '$transcript'")
+        score=$((score + explain_keywords))
     fi
     
     echo "$score"
@@ -128,14 +133,16 @@ analyze_transcript_for_github() {
     if [[ -f "$transcript" ]]; then
         # Check for GitHub-specific keywords
         local github_keywords
-        github_keywords=$(grep -ic "pull request\|pr\|merge\|github\|issue" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${github_keywords:-0}))
+        github_keywords=$(safe_numeric "grep -ic 'pull request\|pr\|merge\|github\|issue' '$transcript'")
+        score=$((score + github_keywords))
+        
         local review_keywords
-        review_keywords=$(grep -ic "review\|approve\|comment.*pr\|close.*issue" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${review_keywords:-0}))
+        review_keywords=$(safe_numeric "grep -ic 'review\|approve\|comment.*pr\|close.*issue' '$transcript'")
+        score=$((score + review_keywords))
+        
         local mcp_github
-        mcp_github=$(grep -ic "mcp__github\|gh.*pr\|gh.*issue" "$transcript" 2>/dev/null || echo 0)
-        score=$((score + ${mcp_github:-0}))
+        mcp_github=$(safe_numeric "grep -ic 'mcp__github\|gh.*pr\|gh.*issue' '$transcript'")
+        score=$((score + mcp_github))
     fi
     
     echo "$score"
@@ -149,16 +156,17 @@ analyze_git_changes_for_features() {
     if git rev-parse --git-dir > /dev/null 2>&1; then
         # Count code files in recent changes
         local recent_code
-        recent_code=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '\.(java|js|ts|py|go|rs|cpp|c|h)$' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${recent_code:-0}))
+        recent_code=$(safe_numeric "git diff --name-only HEAD~1 | grep -E '\\.(java|js|ts|py|go|rs|cpp|c|h)$' | wc -l")
+        score=$((score + recent_code))
+        
         local staged_code
-        staged_code=$(git diff --cached --name-only 2>/dev/null | grep -E '\.(java|js|ts|py|go|rs|cpp|c|h)$' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${staged_code:-0}))
+        staged_code=$(safe_numeric "git diff --cached --name-only | grep -E '\\.(java|js|ts|py|go|rs|cpp|c|h)$' | wc -l")
+        score=$((score + staged_code))
         
         # Check for feature-related directories
         local feature_dirs
-        feature_dirs=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '(src/|lib/|app/|components/)' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${feature_dirs:-0}))
+        feature_dirs=$(safe_numeric "git diff --name-only HEAD~1 | grep -E '(src/|lib/|app/|components/)' | wc -l")
+        score=$((score + feature_dirs))
     fi
     
     echo "$score"
@@ -171,16 +179,17 @@ analyze_git_changes_for_docs() {
     if git rev-parse --git-dir > /dev/null 2>&1; then
         # Count documentation files in recent changes
         local recent_docs
-        recent_docs=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '\.(md|txt|rst|adoc)$' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${recent_docs:-0}))
+        recent_docs=$(safe_numeric "git diff --name-only HEAD~1 | grep -E '\\.(md|txt|rst|adoc)$' | wc -l")
+        score=$((score + recent_docs))
+        
         local staged_docs
-        staged_docs=$(git diff --cached --name-only 2>/dev/null | grep -E '\.(md|txt|rst|adoc)$' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${staged_docs:-0}))
+        staged_docs=$(safe_numeric "git diff --cached --name-only | grep -E '\\.(md|txt|rst|adoc)$' | wc -l")
+        score=$((score + staged_docs))
         
         # Check for docs directories
         local docs_dirs
-        docs_dirs=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '(docs/|documentation/|README)' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${docs_dirs:-0}))
+        docs_dirs=$(safe_numeric "git diff --name-only HEAD~1 | grep -E '(docs/|documentation/|README)' | wc -l")
+        score=$((score + docs_dirs))
     fi
     
     echo "$score"
@@ -193,8 +202,8 @@ analyze_git_changes_for_github() {
     if git rev-parse --git-dir > /dev/null 2>&1; then
         # Check for GitHub-specific files
         local github_files
-        github_files=$(git diff --name-only HEAD~1 2>/dev/null | grep -E '(\.github/|workflows/|PULL_REQUEST_TEMPLATE)' | wc -l 2>/dev/null || echo 0)
-        score=$((score + ${github_files:-0}))
+        github_files=$(safe_numeric "git diff --name-only HEAD~1 | grep -E '(\\.github/|workflows/|PULL_REQUEST_TEMPLATE)' | wc -l")
+        score=$((score + github_files))
     fi
     
     echo "$score"
@@ -214,8 +223,8 @@ analyze_taskmaster_activity() {
         # Check for in-progress tasks
         if command -v jq >/dev/null 2>&1; then
             local in_progress_count
-            in_progress_count=$(jq '[.tasks[] | select(.status == "in-progress")] | length' "$CLAUDE_PROJECT_DIR/.taskmaster/tasks/tasks.json" 2>/dev/null || echo 0)
-            score=$((score + ${in_progress_count:-0} * 2))
+            in_progress_count=$(safe_numeric "jq '[.tasks[] | select(.status == \"in-progress\")] | length' '$CLAUDE_PROJECT_DIR/.taskmaster/tasks/tasks.json'")
+            score=$((score + in_progress_count * 2))
         fi
     fi
     
@@ -226,6 +235,21 @@ analyze_taskmaster_activity() {
 log_debug() {
     if [[ "${DEBUG_WORK_DETECTOR:-}" == "true" ]]; then
         echo "[DEBUG] $1" >&2
+    fi
+}
+
+# Helper function to safely get numeric value from command output
+safe_numeric() {
+    local value
+    value=$(eval "$1" 2>/dev/null)
+    value=${value:-0}
+    # Clean the value - take first line and remove spaces
+    value=$(echo "$value" | head -1 | tr -d '[:space:]')
+    # Validate it's a number
+    if [[ "$value" =~ ^[0-9]+$ ]]; then
+        echo "$value"
+    else
+        echo "0"
     fi
 }
 

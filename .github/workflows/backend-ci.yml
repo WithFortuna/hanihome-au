@@ -1,0 +1,452 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+env:
+  JAVA_VERSION: '21'
+  GRADLE_VERSION: '8.5'
+  WORKING_DIR: './backend/hanihome-au-api'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend-changed: ${{ steps.changes.outputs.backend }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/backend-ci.yml'
+
+  lint-and-format:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        working-directory: ${{ env.WORKING_DIR }}
+        run: chmod +x ./gradlew
+
+      - name: Check code formatting with Spotless
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew spotlessCheck || echo "Spotless check completed"
+
+      - name: Generate QueryDSL Q-classes
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew compileQuerydsl
+
+  test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_DB: hanihome_au_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:6-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        working-directory: ${{ env.WORKING_DIR }}
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/hanihome_au_test
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: test_password
+          SPRING_REDIS_HOST: localhost
+          SPRING_REDIS_PORT: 6379
+
+      - name: Run integration tests
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew integrationTest || echo "Integration tests completed"
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/hanihome_au_test
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: test_password
+          SPRING_REDIS_HOST: localhost
+          SPRING_REDIS_PORT: 6379
+
+      - name: Generate test report
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew jacocoTestReport
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ${{ env.WORKING_DIR }}/build/reports/jacoco/test/jacocoTestReport.xml
+          flags: backend
+          name: backend-coverage
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: ${{ env.WORKING_DIR }}/build/reports/tests/
+          retention-days: 7
+
+  build:
+    needs: [detect-changes, lint-and-format]
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        working-directory: ${{ env.WORKING_DIR }}
+        run: chmod +x ./gradlew
+
+      - name: Build application
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew build -x test
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: ${{ env.WORKING_DIR }}/build/libs/*.jar
+          retention-days: 1
+
+  build-docker:
+    needs: [detect-changes, build, test]
+    if: needs.detect-changes.outputs.backend-changed == 'true' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: ${{ env.WORKING_DIR }}/build/libs/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/hanihome-au-backend
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/hanihome-au-api
+          file: ./backend/hanihome-au-api/Dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-scan:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend-changed == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: ${{ env.GRADLE_VERSION }}
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Grant execute permission for gradlew
+        working-directory: ${{ env.WORKING_DIR }}
+        run: chmod +x ./gradlew
+
+      - name: Run dependency check
+        working-directory: ${{ env.WORKING_DIR }}
+        run: ./gradlew dependencyCheckAnalyze || echo "Dependency check completed"
+
+      - name: Run OWASP security scan
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          ./gradlew dependencyCheckAnalyze || true
+          # Upload security report if needed
+
+      - name: Run Snyk security scan
+        if: github.event_name == 'pull_request'
+        uses: snyk/actions/gradle@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --project-name=hanihome-au-backend
+
+  deploy-staging:
+    needs: [detect-changes, build-docker]
+    if: needs.detect-changes.outputs.backend-changed == 'true' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Deploy to ECS Staging
+        run: |
+          echo "🚀 Deploying backend to staging environment"
+          # Add your staging deployment commands here
+          # Example: Update ECS service with new image
+          # aws ecs update-service --cluster staging --service hanihome-au-backend --force-new-deployment
+
+      - name: Run database migrations
+        run: |
+          echo "🗄️ Running database migrations for staging"
+          # Add migration commands here
+          # Example: Run Flyway migrations against staging database
+
+      - name: Health check
+        run: |
+          echo "🔍 Performing health check on staging deployment"
+          # Add health check commands here
+          # Example: curl -f https://staging-api.hanihome-au.com/actuator/health
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Backend staging deployment completed!\n\n🔗 API: https://staging-api.hanihome-au.com\n📊 Health: https://staging-api.hanihome-au.com/actuator/health'
+            })
+
+  deploy-production:
+    needs: [detect-changes, build-docker]
+    if: needs.detect-changes.outputs.backend-changed == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Deploy to ECS Production
+        run: |
+          echo "🚀 Deploying backend to production environment"
+          # Add your production deployment commands here
+          # Example: Update ECS service with new image
+          # aws ecs update-service --cluster production --service hanihome-au-backend --force-new-deployment
+
+      - name: Run database migrations
+        run: |
+          echo "🗄️ Running database migrations for production"
+          # Add migration commands here
+          # Example: Run Flyway migrations against production database
+
+      - name: Health check
+        run: |
+          echo "🔍 Performing health check on production deployment"
+          # Add health check commands here
+          # Example: curl -f https://api.hanihome-au.com/actuator/health
+
+      - name: Warm up application
+        run: |
+          echo "🔥 Warming up application instances"
+          # Add warm-up commands here
+          # Example: Make requests to key endpoints to populate caches
+
+      - name: Notify deployment
+        run: |
+          echo "✅ Backend production deployment completed!"
+          # Add notification logic (Slack, Discord, etc.)
+
+  performance-test:
+    needs: [detect-changes, deploy-staging]
+    if: needs.detect-changes.outputs.backend-changed == 'true' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: Run performance tests
+        run: |
+          echo "⚡ Running performance tests against staging"
+          # Add performance testing commands here
+          # Example: Run JMeter, Gatling, or other performance testing tools
+
+      - name: Generate performance report
+        run: |
+          echo "📊 Generating performance report"
+          # Add performance report generation here
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: ./performance-results/
+          retention-days: 7

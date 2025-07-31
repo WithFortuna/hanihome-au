@@ -1,0 +1,332 @@
+# HaniHome Australia 🏠
+
+> Australian Real Estate Management Platform - Full-stack application with Next.js frontend and Spring Boot backend
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Frontend CI](https://github.com/WithFortuna/hanihome-au/actions/workflows/frontend-ci.yml/badge.svg)](https://github.com/WithFortuna/hanihome-au/actions/workflows/frontend-ci.yml)
+[![Backend CI](https://github.com/WithFortuna/hanihome-au/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/WithFortuna/hanihome-au/actions/workflows/backend-ci.yml)
+
+## 📖 Overview
+
+HaniHome Australia is a comprehensive real estate management platform designed for the Australian market. It provides property search, management, and geographic-based filtering capabilities with a modern, responsive web interface.
+
+### 🎯 Key Features
+
+- **🔍 Property Search & Management**: Advanced property listing with filtering and search capabilities
+- **🗺️ Geographic Search**: Location-based property search with Google Maps integration
+- **🔐 Authentication System**: Secure JWT-based authentication with OAuth2 support (Google, Kakao)
+- **👤 User Management**: Profile management and user preferences
+- **📱 Responsive Design**: Mobile-first responsive web application
+- **🏗️ Scalable Architecture**: Microservices-ready architecture with independent deployments
+
+## 🏗️ Architecture
+
+This is a **monorepo** containing multiple services:
+
+```
+hanihome-au/
+├── 🎨 frontend/         # Next.js 15 + TypeScript + Tailwind CSS
+├── ⚙️  backend/          # Spring Boot 3 + Java 21 + PostgreSQL
+├── 🚀 infrastructure/   # Terraform AWS infrastructure
+├── 📚 docs/            # Documentation
+└── 🔧 scripts/         # Deployment and utility scripts
+```
+
+### 🛠️ Tech Stack
+
+#### Frontend
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Authentication**: NextAuth.js v5
+- **Maps**: Google Maps JavaScript API
+- **State Management**: React Context + Hooks
+
+#### Backend
+- **Framework**: Spring Boot 3.4.2
+- **Language**: Java 21
+- **Database**: PostgreSQL with PostGIS
+- **Security**: Spring Security + JWT
+- **Data**: JPA/Hibernate + QueryDSL
+- **Cache**: Redis
+- **Migration**: Flyway
+- **Documentation**: OpenAPI 3 (Swagger)
+
+#### Infrastructure
+- **Cloud**: AWS (ECS, RDS, S3, CloudFront)
+- **IaC**: Terraform
+- **Containerization**: Docker
+- **CI/CD**: GitHub Actions
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Node.js** 18+ (for frontend)
+- **Java** 21+ (for backend)
+- **PostgreSQL** 14+ (for database)
+- **Redis** 6+ (for caching)
+- **Docker** (optional, for containerized development)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/WithFortuna/hanihome-au.git
+cd hanihome-au
+```
+
+### 2. Environment Setup
+
+Copy environment files and configure:
+
+```bash
+# Frontend
+cp frontend/hanihome-au/.env.example frontend/hanihome-au/.env.local
+
+# Backend
+cp backend/hanihome-au-api/src/main/resources/application-local.yml.example \
+   backend/hanihome-au-api/src/main/resources/application-local.yml
+```
+
+### 3. Database Setup
+
+```bash
+# Create PostgreSQL database
+createdb hanihome_au
+
+# Run the database initialization script
+psql -d hanihome_au -f scripts/init-db.sql
+```
+
+### 4. Start Development Servers
+
+#### Option A: Traditional Setup
+
+```bash
+# Terminal 1: Start Backend
+cd backend/hanihome-au-api
+./gradlew bootRun --args='--spring.profiles.active=local'
+
+# Terminal 2: Start Frontend
+cd frontend/hanihome-au
+npm install
+npm run dev
+```
+
+#### Option B: Docker Compose (Recommended)
+
+```bash
+# Start all services
+docker-compose -f docker-compose.dev.yml up
+
+# Or start specific services
+docker-compose -f docker-compose.dev.yml up frontend backend
+```
+
+### 5. Access the Application
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **API Documentation**: http://localhost:8080/swagger-ui.html
+
+## 📁 Project Structure
+
+### Frontend (`frontend/hanihome-au/`)
+```
+src/
+├── app/                 # Next.js App Router pages
+├── components/          # Reusable React components
+│   ├── auth/           # Authentication components
+│   ├── maps/           # Google Maps components
+│   ├── property/       # Property-related components
+│   └── ui/             # UI components (buttons, etc.)
+├── hooks/              # Custom React hooks
+├── lib/                # Utility libraries and configurations
+│   ├── api/           # API client configuration
+│   ├── auth/          # Authentication utilities
+│   └── maps/          # Maps utilities
+└── middleware.ts       # Next.js middleware
+```
+
+### Backend (`backend/hanihome-au-api/`)
+```
+src/main/java/com/hanihome/
+├── api/                # Common API components
+│   ├── config/        # Configuration classes
+│   ├── controller/    # REST controllers
+│   ├── service/       # Business logic services
+│   └── security/      # Security configurations
+└── hanihome_au_api/   # Main application
+    ├── domain/        # Domain entities and enums
+    ├── dto/           # Data Transfer Objects
+    ├── repository/    # Data access layer
+    ├── service/       # Business services
+    └── security/      # Security implementations
+```
+
+## 🔧 Development
+
+### Frontend Development
+
+```bash
+cd frontend/hanihome-au
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run linting
+npm run lint
+
+# Run type checking
+npm run type-check
+```
+
+### Backend Development
+
+```bash
+cd backend/hanihome-au-api
+
+# Run application
+./gradlew bootRun
+
+# Build application
+./gradlew build
+
+# Run tests
+./gradlew test
+
+# Generate QueryDSL Q-classes
+./gradlew compileQuerydsl
+```
+
+### Database Migrations
+
+```bash
+# Backend handles migrations automatically via Flyway
+# Migration files are in: backend/hanihome-au-api/src/main/resources/db/migration/
+
+# To create new migration:
+# 1. Create V{number}__{description}.sql in migration folder
+# 2. Restart the application
+```
+
+## 🚀 Deployment
+
+### Staging Deployment
+
+```bash
+# Deploy to staging environment
+docker-compose -f docker-compose.staging.yml up -d
+
+# Or use deployment script
+./scripts/deploy-infrastructure.sh staging
+```
+
+### Production Deployment
+
+```bash
+# Deploy infrastructure with Terraform
+cd infrastructure/terraform
+terraform init
+terraform plan
+terraform apply
+
+# Deploy applications
+docker-compose -f docker-compose.production.yml up -d
+```
+
+## 🧪 Testing
+
+### Frontend Testing
+
+```bash
+cd frontend/hanihome-au
+npm run test          # Run tests (when configured)
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
+```
+
+### Backend Testing
+
+```bash
+cd backend/hanihome-au-api
+./gradlew test                    # Run all tests
+./gradlew test --tests "*Unit*"  # Run unit tests only
+./gradlew test --tests "*Integration*"  # Run integration tests only
+```
+
+## 📊 Monitoring & Health Checks
+
+### Health Endpoints
+
+- **Backend Health**: `GET /actuator/health`
+- **Frontend Health**: `GET /api/health`
+
+### Monitoring
+
+- **Backend Metrics**: Available at `/actuator/metrics`
+- **Frontend Monitoring**: Built-in Next.js analytics
+- **Database Monitoring**: PostgreSQL performance insights
+
+## 🤝 Contributing
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Development Guidelines
+
+- Follow existing code style and patterns
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+- Ensure CI/CD pipelines pass
+
+## 📚 API Documentation
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI Spec**: http://localhost:8080/v3/api-docs
+- **Postman Collection**: Available in `/docs/api/` directory
+
+## 🔐 Security
+
+- JWT-based authentication
+- OAuth2 integration (Google, Kakao)
+- CORS configuration
+- Input validation and sanitization
+- SQL injection protection via JPA/QueryDSL
+- Security headers configuration
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙋‍♂️ Support
+
+For support and questions:
+
+- **Issues**: [GitHub Issues](https://github.com/WithFortuna/hanihome-au/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/WithFortuna/hanihome-au/discussions)
+- **Documentation**: [Wiki](https://github.com/WithFortuna/hanihome-au/wiki)
+
+## 🗺️ Roadmap
+
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics dashboard
+- [ ] Multi-language support
+- [ ] Property valuation AI
+- [ ] Integration with Australian property APIs
+- [ ] Advanced search filters
+- [ ] Property comparison features
+
+---
+
+**Made with ❤️ for the Australian real estate market**

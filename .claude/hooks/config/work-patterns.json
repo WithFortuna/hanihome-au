@@ -1,0 +1,195 @@
+{
+  "patterns": {
+    "feature_development": {
+      "transcript_keywords": [
+        "implement",
+        "develop",
+        "create function",
+        "add feature",
+        "build component",
+        "코드 구현",
+        "기능 개발",
+        "컴포넌트 생성",
+        "API 구현",
+        "서비스 구현"
+      ],
+      "file_extensions": [
+        ".java",
+        ".js",
+        ".ts",
+        ".tsx",
+        ".py",
+        ".go",
+        ".rs",
+        ".cpp",
+        ".c",
+        ".h",
+        ".kt",
+        ".swift"
+      ],
+      "directory_patterns": [
+        "src/",
+        "lib/",
+        "app/",
+        "components/",
+        "services/",
+        "controllers/",
+        "repositories/",
+        "entities/",
+        "models/"
+      ],
+      "taskmaster_indicators": [
+        "task.*pending",
+        "task.*in-progress",
+        "subtask.*완료",
+        "구현.*진행"
+      ],
+      "weight": 10
+    },
+    "documentation": {
+      "transcript_keywords": [
+        "document",
+        "readme",
+        "guide",
+        "tutorial",
+        "explain",
+        "describe",
+        "how to",
+        "문서 작성",
+        "가이드 작성",
+        "설명서",
+        "매뉴얼",
+        "문서화"
+      ],
+      "file_extensions": [
+        ".md",
+        ".txt",
+        ".rst",
+        ".adoc",
+        ".asciidoc"
+      ],
+      "directory_patterns": [
+        "docs/",
+        "documentation/",
+        "doc/",
+        "README",
+        "CHANGELOG",
+        "CONTRIBUTING"
+      ],
+      "git_commit_patterns": [
+        "docs:",
+        "doc:",
+        "documentation:",
+        "readme:",
+        "guide:"
+      ],
+      "weight": 8
+    },
+    "github_work": {
+      "transcript_keywords": [
+        "pull request",
+        "pr",
+        "merge",
+        "github",
+        "issue",
+        "review",
+        "approve",
+        "comment.*pr",
+        "close.*issue",
+        "풀리퀘스트",
+        "PR 생성",
+        "이슈 처리",
+        "코드 리뷰"
+      ],
+      "mcp_indicators": [
+        "mcp__github",
+        "gh pr",
+        "gh issue",
+        "github.*create",
+        "github.*update"
+      ],
+      "file_patterns": [
+        ".github/",
+        "workflows/",
+        "PULL_REQUEST_TEMPLATE",
+        "ISSUE_TEMPLATE"
+      ],
+      "git_commit_patterns": [
+        "github:",
+        "pr:",
+        "issue:",
+        "workflow:"
+      ],
+      "weight": 6
+    }
+  },
+  "scoring": {
+    "transcript_match": 2,
+    "file_extension_match": 3,
+    "directory_match": 2,
+    "git_commit_match": 1,
+    "mcp_indicator_match": 4,
+    "taskmaster_activity": 5
+  },
+  "thresholds": {
+    "minimum_score": 3,
+    "confident_score": 10,
+    "high_confidence_score": 20
+  },
+  "fallback_rules": {
+    "default_type": "unknown",
+    "tie_breaking": "feature_development",
+    "confidence_levels": {
+      "low": "< 10",
+      "medium": "10-20", 
+      "high": "> 20"
+    }
+  },
+  "time_windows": {
+    "recent_commits": "1 hour",
+    "session_activity": "2 hours",
+    "taskmaster_updates": "30 minutes"
+  },
+  "exclusions": {
+    "ignore_patterns": [
+      "test/",
+      "tests/",
+      "__tests__/",
+      "spec/",
+      ".spec.",
+      ".test.",
+      "node_modules/",
+      ".git/",
+      "dist/",
+      "build/"
+    ],
+    "ignore_extensions": [
+      ".log",
+      ".tmp",
+      ".cache",
+      ".lock"
+    ]
+  },
+  "customization": {
+    "project_specific": {
+      "hanihome_au": {
+        "feature_keywords": [
+          "property",
+          "매물",
+          "geographic",
+          "지리적",
+          "search",
+          "검색",
+          "maps",
+          "지도"
+        ],
+        "doc_keywords": [
+          "API 문서",
+          "시스템 가이드",
+          "deployment",
+          "배포"
+        ]
+      }
+    }
+  }
+}

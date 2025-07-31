@@ -1,0 +1,73 @@
+# Test Configuration for HaniHome AU API
+spring:
+  application:
+    name: hanihome-au-api-test
+  
+  # Test Database Configuration (H2 in-memory)
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+        
+  # Test Redis Configuration (Embedded)
+  data:
+    redis:
+      host: localhost
+      port: 6370  # Different port for test
+      database: 1
+      timeout: 2000ms
+      
+  # Disable Flyway for tests
+  flyway:
+    enabled: false
+
+# JWT Configuration for tests
+jwt:
+  secret: test-jwt-secret-key-for-testing-only-do-not-use-in-production
+  expiration: 3600000  # 1 hour
+  refresh-expiration: 7200000  # 2 hours
+
+# Test File Storage
+app:
+  file-storage:
+    upload-dir: test-uploads
+    base-url: http://localhost:8080/files
+    max-file-size: 5MB
+    allowed-extensions: jpg,jpeg,png,gif,webp
+
+# Test Rate Limiting (more lenient for tests)
+rate-limit:
+  requests-per-minute: 1000
+  burst-size: 100
+
+# Test Logging
+logging:
+  level:
+    com.hanihome: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.transaction: DEBUG
+    org.springframework.test: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# Test Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always

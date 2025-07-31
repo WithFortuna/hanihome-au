@@ -1,0 +1,46 @@
+package com.hanihome.hanihome_au_api.exception;
+
+public class PropertyException extends RuntimeException {
+    
+    public PropertyException(String message) {
+        super(message);
+    }
+    
+    public PropertyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+    
+    public static class PropertyNotFoundException extends PropertyException {
+        public PropertyNotFoundException(Long propertyId) {
+            super("Property not found with ID: " + propertyId);
+        }
+    }
+    
+    public static class PropertyAccessDeniedException extends PropertyException {
+        public PropertyAccessDeniedException(Long propertyId) {
+            super("Access denied to property with ID: " + propertyId);
+        }
+    }
+    
+    public static class PropertyStatusException extends PropertyException {
+        public PropertyStatusException(String message) {
+            super(message);
+        }
+    }
+    
+    public static class PropertyImageException extends PropertyException {
+        public PropertyImageException(String message) {
+            super(message);
+        }
+        
+        public PropertyImageException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+    
+    public static class PropertyValidationException extends PropertyException {
+        public PropertyValidationException(String message) {
+            super(message);
+        }
+    }
+}

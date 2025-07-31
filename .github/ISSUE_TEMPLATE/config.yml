@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🎯 TaskMaster Integration Guide
+    url: https://github.com/eyaltoledano/claude-task-master
+    about: Learn more about TaskMaster AI integration for this project
+  - name: 💬 Discussions
+    url: https://github.com/${{ github.repository }}/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📖 Documentation
+    url: https://github.com/${{ github.repository }}/wiki
+    about: Read the project documentation and guides

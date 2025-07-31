@@ -1,0 +1,291 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-frontend-dependencies:
+    name: Update Frontend Dependencies
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/hanihome-au/package-lock.json'
+
+      - name: Update dependencies
+        working-directory: './frontend/hanihome-au'
+        run: |
+          # Update all dependencies to latest compatible versions
+          npm update
+          
+          # Check for outdated packages
+          npm outdated || true
+
+      - name: Run tests
+        working-directory: './frontend/hanihome-au'
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(frontend): update dependencies'
+          title: '🔄 Frontend Dependencies Update'
+          body: |
+            ## Frontend Dependencies Update
+            
+            This automated PR updates frontend dependencies to their latest compatible versions.
+            
+            ### Changes
+            - Updated npm packages in `frontend/hanihome-au/package.json`
+            - Updated `package-lock.json` with new versions
+            
+            ### Testing
+            - ✅ All tests pass
+            - ✅ Build succeeds
+            
+            Please review the changes and merge if everything looks good.
+            
+            ---
+            *This PR was created automatically by the dependency update workflow.*
+          branch: feature/update-frontend-dependencies
+          base: develop
+          labels: |
+            dependencies
+            frontend
+            automated
+
+  update-backend-dependencies:
+    name: Update Backend Dependencies  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Update Gradle dependencies
+        working-directory: './backend/hanihome-au-api'
+        run: |
+          chmod +x ./gradlew
+          
+          # Check for dependency updates
+          ./gradlew dependencyUpdates
+          
+          # Update Gradle wrapper
+          ./gradlew wrapper --gradle-version=latest
+
+      - name: Run tests
+        working-directory: './backend/hanihome-au-api'
+        run: |
+          ./gradlew clean test build -x integrationTest
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(backend): update dependencies'
+          title: '🔄 Backend Dependencies Update'
+          body: |
+            ## Backend Dependencies Update
+            
+            This automated PR updates backend dependencies to their latest compatible versions.
+            
+            ### Changes
+            - Updated Gradle dependencies in `backend/hanihome-au-api/build.gradle`
+            - Updated Gradle wrapper if a new version is available
+            
+            ### Testing
+            - ✅ All tests pass
+            - ✅ Build succeeds
+            
+            ### Dependency Report
+            Check the dependency update report in the workflow logs for details on what was updated.
+            
+            Please review the changes and merge if everything looks good.
+            
+            ---
+            *This PR was created automatically by the dependency update workflow.*
+          branch: feature/update-backend-dependencies
+          base: develop
+          labels: |
+            dependencies
+            backend
+            automated
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Frontend Security Audit
+        working-directory: './frontend/hanihome-au'
+        run: |
+          npm ci
+          npm audit --audit-level moderate
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Backend Security Audit
+        working-directory: './backend/hanihome-au-api'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew dependencyCheckAnalyze
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            ./backend/hanihome-au-api/build/reports/dependency-check-report.html
+            ./frontend/hanihome-au/npm-audit.json
+
+      - name: Create Security Issue
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Security Vulnerabilities Detected';
+            const body = `
+            ## Security Audit Failed
+            
+            The automated security audit has detected vulnerabilities in the project dependencies.
+            
+            ### Next Steps
+            1. Check the security reports in the workflow artifacts
+            2. Update vulnerable dependencies
+            3. Review and fix any security issues
+            
+            ### Reports
+            - Frontend: npm audit report
+            - Backend: OWASP dependency check report
+            
+            ---
+            *This issue was created automatically by the security audit workflow.*
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'bug', 'high-priority']
+            });
+
+  license-check:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install license checker
+        run: npm install -g license-checker
+
+      - name: Check Frontend Licenses
+        working-directory: './frontend/hanihome-au'
+        run: |
+          npm ci
+          license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Unlicense' --excludePrivatePackages > frontend-licenses.txt
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Check Backend Licenses
+        working-directory: './backend/hanihome-au-api'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew generateLicenseReport
+
+      - name: Upload License Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-reports
+          path: |
+            ./frontend/hanihome-au/frontend-licenses.txt
+            ./backend/hanihome-au-api/build/reports/license/
+
+  notify-results:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [update-frontend-dependencies, update-backend-dependencies, security-audit, license-check]
+    if: always()
+    
+    steps:
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "Dependency Update Workflow Completed",
+              attachments: [
+                {
+                  color: "${{ contains(needs.*.result, 'failure') && 'danger' || 'good' }}",
+                  fields: [
+                    {
+                      title: "Frontend Dependencies",
+                      value: "${{ needs.update-frontend-dependencies.result }}",
+                      short: true
+                    },
+                    {
+                      title: "Backend Dependencies", 
+                      value: "${{ needs.update-backend-dependencies.result }}",
+                      short: true
+                    },
+                    {
+                      title: "Security Audit",
+                      value: "${{ needs.security-audit.result }}",
+                      short: true
+                    },
+                    {
+                      title: "License Check",
+                      value: "${{ needs.license-check.result }}",
+                      short: true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

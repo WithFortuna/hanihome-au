@@ -1,0 +1,265 @@
+name: Auto Branch Creation from TaskMaster
+
+on:
+  workflow_dispatch:
+    inputs:
+      task-id:
+        description: 'TaskMaster Task ID (e.g., 4.2 for subtask or 5 for main task)'
+        required: true
+        type: string
+      branch-type:
+        description: 'Branch type'
+        required: false
+        default: 'feature'
+        type: choice
+        options:
+          - feature
+          - bugfix
+          - hotfix
+      base-branch:
+        description: 'Base branch to create from'
+        required: false
+        default: 'develop'
+        type: choice
+        options:
+          - develop
+          - main
+
+jobs:
+  create-branch:
+    name: Create Task Branch
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Verify TaskMaster setup
+        run: |
+          if [[ ! -f ".taskmaster/tasks/tasks.json" ]]; then
+            echo "❌ TaskMaster not initialized in this repository"
+            exit 1
+          fi
+          echo "✅ TaskMaster setup verified"
+
+      - name: Install TaskMaster CLI
+        run: |
+          npm install -g task-master-ai
+          task-master --version
+
+      - name: Get task details and validate
+        id: task-details
+        run: |
+          TASK_ID="${{ github.event.inputs.task-id }}"
+          echo "Fetching details for task: $TASK_ID"
+          
+          # Check if task exists and get details
+          if ! TASK_INFO=$(task-master show "$TASK_ID" 2>/dev/null); then
+            echo "❌ Task $TASK_ID not found in TaskMaster"
+            echo "Available tasks:"
+            task-master list --status=pending
+            exit 1
+          fi
+          
+          # Extract task title and clean it for branch name
+          TASK_TITLE=$(echo "$TASK_INFO" | grep -E "^Title:" | sed 's/Title: *//' | head -1)
+          
+          if [[ -z "$TASK_TITLE" ]]; then
+            echo "❌ Could not extract task title"
+            exit 1
+          fi
+          
+          echo "Task title: $TASK_TITLE"
+          
+          # Clean title for branch name (remove special chars, convert to lowercase, limit length)
+          CLEAN_TITLE=$(echo "$TASK_TITLE" | \
+            tr '[:upper:]' '[:lower:]' | \
+            sed 's/[^a-z0-9가-힣]/-/g' | \
+            sed 's/--*/-/g' | \
+            sed 's/^-\|-$//g' | \
+            cut -c1-50 | \
+            sed 's/-$//')
+          
+          # Create branch name
+          BRANCH_TYPE="${{ github.event.inputs.branch-type }}"
+          BRANCH_NAME="${BRANCH_TYPE}/task-${TASK_ID}-${CLEAN_TITLE}"
+          
+          echo "Generated branch name: $BRANCH_NAME"
+          echo "task-title=$TASK_TITLE" >> $GITHUB_OUTPUT
+          echo "branch-name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "clean-title=$CLEAN_TITLE" >> $GITHUB_OUTPUT
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Check if branch already exists
+        id: branch-check
+        run: |
+          BRANCH_NAME="${{ steps.task-details.outputs.branch-name }}"
+          
+          # Check local branches
+          if git branch --list "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "branch-exists=true" >> $GITHUB_OUTPUT
+            echo "❌ Branch $BRANCH_NAME already exists locally"
+            exit 1
+          fi
+          
+          # Check remote branches
+          if git ls-remote --heads origin "$BRANCH_NAME" | grep -q "$BRANCH_NAME"; then
+            echo "branch-exists=true" >> $GITHUB_OUTPUT
+            echo "❌ Branch $BRANCH_NAME already exists on remote"
+            exit 1
+          fi
+          
+          echo "branch-exists=false" >> $GITHUB_OUTPUT
+          echo "✅ Branch name is available: $BRANCH_NAME"
+
+      - name: Create and push branch
+        run: |
+          BASE_BRANCH="${{ github.event.inputs.base-branch }}"
+          BRANCH_NAME="${{ steps.task-details.outputs.branch-name }}"
+          
+          echo "Creating branch from $BASE_BRANCH"
+          
+          # Ensure we're on the latest base branch
+          git checkout "$BASE_BRANCH"
+          git pull origin "$BASE_BRANCH"
+          
+          # Create new branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Push new branch to remote
+          git push -u origin "$BRANCH_NAME"
+          
+          echo "✅ Successfully created and pushed branch: $BRANCH_NAME"
+
+      - name: Update task status to in-progress
+        run: |
+          TASK_ID="${{ github.event.inputs.task-id }}"
+          echo "Updating task $TASK_ID status to 'in-progress'"
+          
+          if task-master set-status --id="$TASK_ID" --status=in-progress; then
+            echo "✅ Task $TASK_ID status updated to 'in-progress'"
+          else
+            echo "⚠️ Could not update task status (task may already be in-progress)"
+          fi
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Create initial commit with task reference
+        run: |
+          BRANCH_NAME="${{ steps.task-details.outputs.branch-name }}"
+          TASK_ID="${{ github.event.inputs.task-id }}"
+          TASK_TITLE="${{ steps.task-details.outputs.task-title }}"
+          
+          git checkout "$BRANCH_NAME"
+          
+          # Create a simple README for the task
+          cat > "TASK-${TASK_ID}.md" << EOF
+          # Task ${TASK_ID}: ${TASK_TITLE}
+          
+          ## Task Information
+          - **Task ID**: ${TASK_ID}
+          - **Branch**: ${BRANCH_NAME}
+          - **Created**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          - **Status**: in-progress
+          
+          ## Implementation Notes
+          <!-- Add your implementation notes here -->
+          
+          ## Testing Checklist
+          - [ ] Unit tests written
+          - [ ] Integration tests passing
+          - [ ] Manual testing completed
+          
+          ## TaskMaster Integration
+          - [ ] Task status updated during development
+          - [ ] Implementation details documented in TaskMaster
+          - [ ] Task marked as 'done' when complete
+          
+          ---
+          *This file was auto-generated by GitHub Actions TaskMaster integration*
+          EOF
+          
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add "TASK-${TASK_ID}.md"
+          git commit -m "chore: initialize task ${TASK_ID} branch
+
+          - Task: ${TASK_TITLE}
+          - Branch: ${BRANCH_NAME}  
+          - Status: in-progress
+          
+          🤖 Generated by TaskMaster GitHub Actions integration"
+          
+          git push origin "$BRANCH_NAME"
+          
+          echo "✅ Initial commit created with task reference"
+
+      - name: Create GitHub issue for task (optional)
+        continue-on-error: true
+        run: |
+          TASK_ID="${{ github.event.inputs.task-id }}"
+          TASK_TITLE="${{ steps.task-details.outputs.task-title }}"
+          BRANCH_NAME="${{ steps.task-details.outputs.branch-name }}"
+          
+          # Get full task details
+          TASK_DETAILS=$(task-master show "$TASK_ID")
+          
+          # Create issue body
+          ISSUE_BODY="## TaskMaster Task Reference
+          
+          - **Task ID**: ${TASK_ID}
+          - **Branch**: \`${BRANCH_NAME}\`
+          - **TaskMaster File**: \`.taskmaster/tasks/task-${TASK_ID}.md\`
+          
+          ## Task Details
+          \`\`\`
+          ${TASK_DETAILS}
+          \`\`\`
+          
+          ## Implementation Progress
+          - [ ] Development started
+          - [ ] Unit tests written
+          - [ ] Integration tests passing
+          - [ ] Code review completed
+          - [ ] Ready for merge
+          
+          ---
+          *Auto-generated from TaskMaster Task ${TASK_ID}*"
+          
+          gh issue create \
+            --title "[Task ${TASK_ID}] ${TASK_TITLE}" \
+            --body "$ISSUE_BODY" \
+            --label "task,auto-generated" \
+            --assignee "${{ github.actor }}" || echo "Could not create issue (may not have permissions)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Post workflow summary
+        run: |
+          TASK_ID="${{ github.event.inputs.task-id }}"
+          TASK_TITLE="${{ steps.task-details.outputs.task-title }}"
+          BRANCH_NAME="${{ steps.task-details.outputs.branch-name }}"
+          
+          echo "## 🚀 Task Branch Created Successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Task**: $TASK_ID - $TASK_TITLE" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch**: \`$BRANCH_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Base**: ${{ github.event.inputs.base-branch }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: in-progress" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Checkout the new branch: \`git checkout $BRANCH_NAME\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Start implementing the task" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update TaskMaster with progress: \`task-master update-subtask --id=$TASK_ID --prompt=\"progress notes\"\`" >> $GITHUB_STEP_SUMMARY
+          echo "4. Create PR when ready: \`gh pr create --title \"[Task $TASK_ID] $TASK_TITLE\"\`" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,48 @@
+1. 개요 (Overview)
+프로젝트명: HaniHome AU (가칭)
+목표: 호주 거주자를 대상으로 하는 신뢰 기반 부동산 매물 등록, 탐색, 거래 플랫폼 구축
+타겟 유저: 호주에 거주하거나 이주 예정인 임차인, 임대인, 공인 중개인
+2. 핵심 문제 정의 (Problem Statement)
+호주 부동산 정보는 파편화되어 있고, 실시간 거래 가능 여부 파악이 어렵다.
+임차인/임대인의 매칭이 비효율적이며, 가짜 매물이나 허위 정보가 존재한다.
+외국인은 지역 부동산 법이나 거래 방식에 대한 정보가 부족하다.
+3. 주요 기능 (Core Features)
+A. 공통
+ 회원가입 및 인증 (Email, Google, Apple 등)
+ 사용자 역할 구분: 임차인 / 임대인 / 중개인
+ 프로필 관리 (이름, 연락처, 선호지역 등)
+B. 매물 등록 (For 임대인/중개인)
+ 매물 기본 정보 입력 (주소, 가격, 입주 가능일, 사진 등)
+ 매물 유형 선택 (렌트/셰어하우스)
+ 옵션 선택: 주차, 가구, 인터넷 포함 여부 등
+ 위치 기반 주소 자동 추천 (Google Maps 연동)
+C. 매물 탐색 (For 임차인)
+ 검색 필터 (지역, 가격, 옵션 등)
+ 지도 기반 탐색 기능
+ 실시간 거래 가능 여부 표시
+ 관심 매물 저장
+D. 뷰잉 및 거래
+ 뷰잉 예약 기능 (캘린더 연동)
+ 뷰잉 전 알림 및 취소 알림 (SSE or FCM)
+ 거래 제안 / 승인 / 완료 처리
+ 외부 계약 플랫폼 연동 (DocuSign 등)
+E. 리뷰 및 평가
+ 매물 및 임대인 후기 작성
+ 거래 경험 기반 별점 평가
+F. 관리자 기능
+ 매물/회원 관리
+ 신고 처리
+ 통계 대시보드 (거래량, 매물 수 등)
+4. 기술 스택 (Tech Stack)
+분류	기술
+Frontend	React / Next.js + TypeScript
+Mobile	React Native or Flutter
+Backend	Spring Boot + JPA + QueryDSL
+Auth	OAuth 2.0 (Google, Apple)
+DB	PostgreSQL or MySQL
+Hosting	AWS (EC2, S3, CloudFront, RDS)
+Infra	GitHub Actions + Docker
+Monitoring	CloudWatch, Sentry
+
+
+

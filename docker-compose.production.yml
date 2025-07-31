@@ -1,0 +1,197 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ${ECR_REGISTRY}/hanihome-au-backend:${IMAGE_TAG:-latest}
+    container_name: hanihome-backend-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: production
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      KAKAO_CLIENT_ID: ${KAKAO_CLIENT_ID}
+      KAKAO_CLIENT_SECRET: ${KAKAO_CLIENT_SECRET}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET_ASSETS: ${AWS_S3_BUCKET_ASSETS}
+      AWS_S3_BUCKET_BACKUPS: ${AWS_S3_BUCKET_BACKUPS}
+      AWS_S3_BUCKET_LOGS: ${AWS_S3_BUCKET_LOGS}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SENTRY_DSN: ${SENTRY_DSN}
+      LOG_LEVEL: warn
+      ENABLE_SWAGGER: false
+      ENABLE_ACTUATOR: true
+      SECURITY_HEADERS_ENABLED: true
+      HSTS_ENABLED: true
+      CSP_ENABLED: true
+    ports:
+      - "8080:8080"
+    networks:
+      - hanihome-network
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/hanihome-au-production
+        awslogs-region: ap-southeast-2
+        awslogs-stream-prefix: backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  frontend:
+    image: ${ECR_REGISTRY}/hanihome-au-frontend:${IMAGE_TAG:-latest}
+    container_name: hanihome-frontend-prod
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://api.hanihome.com.au/api/v1
+      NEXT_PUBLIC_APP_NAME: HaniHome Australia
+      NEXT_PUBLIC_APP_URL: https://hanihome.com.au
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+      NEXT_PUBLIC_KAKAO_CLIENT_ID: ${NEXT_PUBLIC_KAKAO_CLIENT_ID}
+      NEXT_PUBLIC_GA_ID: ${NEXT_PUBLIC_GA_ID}
+      NEXTAUTH_URL: https://hanihome.com.au
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_JWT_SECRET: ${NEXTAUTH_JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN}
+      NEXT_PUBLIC_DEBUG_MODE: false
+      NEXT_PUBLIC_ENABLE_ANALYTICS: true
+      NEXT_PUBLIC_ENABLE_ERROR_TRACKING: true
+      NEXT_PUBLIC_FORCE_HTTPS: true
+      NEXT_PUBLIC_STRICT_TRANSPORT_SECURITY: true
+    ports:
+      - "3000:3000"
+    networks:
+      - hanihome-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/hanihome-au-production
+        awslogs-region: ap-southeast-2
+        awslogs-stream-prefix: frontend
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+  redis:
+    image: redis:7-alpine
+    container_name: hanihome-redis-prod
+    command: redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes --save 900 1 --save 300 10 --save 60 10000
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    networks:
+      - hanihome-network
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/hanihome-au-production
+        awslogs-region: ap-southeast-2
+        awslogs-stream-prefix: redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+
+  nginx:
+    image: nginx:alpine
+    container_name: hanihome-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/production.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+    networks:
+      - hanihome-network
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/hanihome-au-production
+        awslogs-region: ap-southeast-2
+        awslogs-stream-prefix: nginx
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Log aggregation for production monitoring
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: hanihome-fluentd-prod
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - hanihome-network
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+volumes:
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/hanihome/redis-data
+
+networks:
+  hanihome-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

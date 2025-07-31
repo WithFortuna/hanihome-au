@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hanihome-postgres-dev
+    environment:
+      POSTGRES_DB: hanihome_au
+      POSTGRES_USER: hanihome_user
+      POSTGRES_PASSWORD: hanihome_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - hanihome-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hanihome_user -d hanihome_au"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/hanihome-au-api
+      dockerfile: Dockerfile
+    container_name: hanihome-backend-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: development
+      DATABASE_URL: jdbc:postgresql://postgres:5432/hanihome_au
+      DATABASE_USERNAME: hanihome_user
+      DATABASE_PASSWORD: hanihome_password
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: hanihome_au
+      JWT_SECRET: dev-jwt-secret-key-for-development-only-not-for-production
+      ENABLE_SWAGGER: true
+      ENABLE_ACTUATOR: true
+      DEBUG: true
+      LOG_LEVEL: debug
+    ports:
+      - "8080:8080"
+    networks:
+      - hanihome-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend/hanihome-au
+      dockerfile: Dockerfile
+    container_name: hanihome-frontend-dev
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+      NEXT_PUBLIC_APP_NAME: HaniHome Australia (Dev)
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_DEBUG_MODE: true
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: dev-nextauth-secret-key-for-development-only
+    ports:
+      - "3000:3000"
+    networks:
+      - hanihome-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: hanihome-pgadmin-dev
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@hanihome.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - hanihome-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  hanihome-network:
+    driver: bridge

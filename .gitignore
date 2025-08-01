@@ -167,5 +167,16 @@ docs/build/
 docs/.docusaurus/
 
 # Task files (commented out to keep them in repo)
+
+# Logs
+logs
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.sw?
+# OS specific
+
+# Task files
 # tasks.json
 # tasks/ 

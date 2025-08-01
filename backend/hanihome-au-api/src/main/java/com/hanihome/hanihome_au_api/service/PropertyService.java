@@ -20,8 +20,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
+import com.hanihome.hanihome_au_api.dto.response.PropertyWithDistanceResponse;
 
 @Slf4j
 @Service
@@ -342,5 +350,111 @@ public class PropertyService {
                 .thumbnailUrl(mainImage != null ? mainImage.getThumbnailUrl() : null)
                 .createdDate(property.getCreatedDate())
                 .build();
+    }
+    
+    /**
+     * Get property count by distance ranges
+     */
+    @Cacheable(value = "distanceRanges", key = "#latitude + '_' + #longitude + '_' + #propertyType + '_' + #rentalType")
+    public Map<String, Integer> getPropertyCountByDistanceRanges(
+            Double latitude, Double longitude, 
+            PropertyType propertyType, RentalType rentalType,
+            BigDecimal minPrice, BigDecimal maxPrice) {
+        
+        Map<String, Integer> ranges = new LinkedHashMap<>();
+        Double[] distances = {1.0, 2.0, 5.0, 10.0, 20.0};
+        String[] labels = {"1km 이내", "2km 이내", "5km 이내", "10km 이내", "20km 이내"};
+        
+        for (int i = 0; i < distances.length; i++) {
+            PropertySearchCriteria criteria = PropertySearchCriteria.builder()
+                    .latitude(BigDecimal.valueOf(latitude))
+                    .longitude(BigDecimal.valueOf(longitude))
+                    .radiusKm(distances[i])
+                    .propertyType(propertyType)
+                    .rentalType(rentalType)
+                    .minMonthlyRent(minPrice)
+                    .maxMonthlyRent(maxPrice)
+                    .status(PropertyStatus.ACTIVE)
+                    .build();
+            
+            // Get count using repository
+            long count = propertyRepository.countPropertiesWithCriteria(criteria);
+            ranges.put(labels[i], (int) count);
+        }
+        
+        return ranges;
+    }
+    
+    /**
+     * Find properties within specific distance ranges with enhanced filters
+     */
+    @Cacheable(value = "nearbyPropertiesEnhanced", 
+               key = "#latitude + '_' + #longitude + '_' + #radiusKm + '_' + #limit")
+    public List<PropertyWithDistanceResponse> findNearbyPropertiesEnhanced(
+            Double latitude, Double longitude, Double radiusKm, int limit) {
+        
+        PropertySearchCriteria criteria = PropertySearchCriteria.builder()
+                .latitude(BigDecimal.valueOf(latitude))
+                .longitude(BigDecimal.valueOf(longitude))
+                .radiusKm(radiusKm)
+                .status(PropertyStatus.ACTIVE)
+                .sortBy("distance")
+                .sortDirection("asc")
+                .build();
+        
+        List<Property> properties = propertyRepository.findNearbyProperties(
+                BigDecimal.valueOf(latitude), BigDecimal.valueOf(longitude), 
+                radiusKm, limit);
+        
+        return properties.stream()
+                .map(property -> {
+                    // Calculate actual distance
+                    Double distance = calculateDistance(
+                            latitude, longitude,
+                            property.getLatitude().doubleValue(), 
+                            property.getLongitude().doubleValue());
+                    
+                    // Calculate bearing (optional)
+                    Integer bearing = calculateBearing(
+                            latitude, longitude,
+                            property.getLatitude().doubleValue(), 
+                            property.getLongitude().doubleValue());
+                    
+                    return PropertyWithDistanceResponse.fromPropertyWithDistance(
+                            property, BigDecimal.valueOf(distance), bearing);
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Calculate distance between two points using Haversine formula
+     */
+    private Double calculateDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
+        final int R = 6371; // Radius of the earth in km
+        
+        Double latDistance = Math.toRadians(lat2 - lat1);
+        Double lonDistance = Math.toRadians(lon2 - lon1);
+        Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        return R * c; // Distance in km
+    }
+    
+    /**
+     * Calculate bearing between two points
+     */
+    private Integer calculateBearing(Double lat1, Double lon1, Double lat2, Double lon2) {
+        Double dLon = Math.toRadians(lon2 - lon1);
+        Double lat1Rad = Math.toRadians(lat1);
+        Double lat2Rad = Math.toRadians(lat2);
+        
+        Double y = Math.sin(dLon) * Math.cos(lat2Rad);
+        Double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) 
+                - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+        
+        Double bearing = Math.toDegrees(Math.atan2(y, x));
+        return (int) ((bearing + 360) % 360);
     }
 }

@@ -251,6 +251,80 @@ public class PropertyController {
             Map.of("properties", nearbyProperties)));
     }
 
+    @GetMapping("/distance-filter")
+    @Operation(summary = "Search properties with distance-based filtering and sorting",
+            description = "Advanced property search with precise distance calculations, multiple filter options, and distance-based sorting")
+    public ResponseEntity<ApiResponse<PropertyListResponse>> searchPropertiesWithDistanceFilter(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(defaultValue = "10.0") Double maxDistanceKm,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) PropertyType propertyType,
+            @RequestParam(required = false) RentalType rentalType,
+            @RequestParam(required = false) Integer minRooms,
+            @RequestParam(required = false) Integer maxRooms,
+            @RequestParam(required = false) Boolean parkingRequired,
+            @RequestParam(required = false) Boolean petAllowed,
+            @RequestParam(required = false) Boolean furnished,
+            @RequestParam(defaultValue = "distance") String sortBy, // distance, price, area, date
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        
+        log.info("Distance-based property search - Location: {}, {}, Max Distance: {}km", 
+                latitude, longitude, maxDistanceKm);
+        
+        // Build search criteria with location filter
+        PropertySearchCriteria criteria = PropertySearchCriteria.builder()
+                .latitude(BigDecimal.valueOf(latitude))
+                .longitude(BigDecimal.valueOf(longitude))
+                .radiusKm(maxDistanceKm)
+                .minMonthlyRent(minPrice)
+                .maxMonthlyRent(maxPrice)
+                .propertyType(propertyType)
+                .rentalType(rentalType)
+                .minRooms(minRooms)
+                .maxRooms(maxRooms)
+                .parkingRequired(parkingRequired)
+                .petAllowed(petAllowed)
+                .furnished(furnished)
+                .sortBy(sortBy)
+                .sortDirection(sortDir)
+                .status(PropertyStatus.ACTIVE)
+                .build();
+        
+        Sort.Direction direction = sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, Math.min(size, 50), Sort.by(direction, sortBy));
+        
+        PropertyListResponse properties = propertyService.searchProperties(criteria, pageable);
+        
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("Found %d properties within %.1fkm", 
+                        properties.getTotalElements(), maxDistanceKm), 
+                properties));
+    }
+
+    @GetMapping("/distance-ranges")
+    @Operation(summary = "Get property count by distance ranges",
+            description = "Returns the number of properties within different distance ranges from a given location")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPropertiesCountByDistance(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(required = false) PropertyType propertyType,
+            @RequestParam(required = false) RentalType rentalType,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice) {
+        
+        log.info("Getting property count by distance ranges for location: {}, {}", latitude, longitude);
+        
+        Map<String, Integer> distanceRanges = propertyService.getPropertyCountByDistanceRanges(
+                latitude, longitude, propertyType, rentalType, minPrice, maxPrice);
+        
+        return ResponseEntity.ok(ApiResponse.success("Distance ranges retrieved successfully", 
+            Map.of("distanceRanges", distanceRanges)));
+    }
+
     private Long getCurrentUserId() {
         // This would be implemented to get current user ID from security context
         // For now, return a placeholder

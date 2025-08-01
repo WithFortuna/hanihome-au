@@ -367,9 +367,33 @@ public class PropertyRepositoryCustomImpl implements PropertyRepositoryCustom {
             case "available" -> ascending ? property.availableDate.asc() : property.availableDate.desc();
             case "rooms" -> ascending ? property.rooms.asc() : property.rooms.desc();
             case "floor" -> ascending ? property.floor.asc() : property.floor.desc();
+            case "distance" -> {
+                if (criteria.hasLocationFilter()) {
+                    NumberExpression<Double> distance = calculateDistance(
+                        criteria.getLatitude(), criteria.getLongitude(),
+                        property.latitude, property.longitude
+                    );
+                    yield ascending ? distance.asc() : distance.desc();
+                }
+                yield property.createdDate.desc();
+            }
             default -> property.createdDate.desc();
         };
 
         query.orderBy(orderSpecifier);
+    }
+    
+    /**
+     * Calculate distance between two points using Haversine formula
+     */
+    private NumberExpression<Double> calculateDistance(BigDecimal lat1, BigDecimal lon1, 
+                                                      NumberExpression<BigDecimal> lat2, 
+                                                      NumberExpression<BigDecimal> lon2) {
+        return Expressions.numberTemplate(Double.class,
+            "6371 * acos(greatest(-1, least(1, " +
+            "cos(radians({0})) * cos(radians({1})) * cos(radians({2}) - radians({3})) + " +
+            "sin(radians({0})) * sin(radians({1})))))",
+            lat1, lat2, lon2, lon1
+        );
     }
 }

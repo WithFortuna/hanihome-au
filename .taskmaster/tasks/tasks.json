@@ -424,7 +424,7 @@
               "5.4"
             ],
             "details": "사용자 현재 위치 획득 (Geolocation API), 거리 범위 선택 UI 컴포넌트, 거리 기반 매물 정렬 알고리즘, 실시간 필터링 결과 업데이트, 지도 뷰포트 기반 동적 로딩, 거리 표시 형식화 (km/m 단위)",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
@@ -927,7 +927,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-07-31T08:25:56.369Z",
+      "updated": "2025-08-01T04:57:25.954Z",
       "description": "Tasks for master context"
     }
   }

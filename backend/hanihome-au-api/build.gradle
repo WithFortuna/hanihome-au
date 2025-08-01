@@ -63,12 +63,6 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	
-	// Integration test dependencies
-	integrationTestImplementation 'org.springframework.boot:spring-boot-starter-test'
-	integrationTestImplementation 'org.testcontainers:junit-jupiter'
-	integrationTestImplementation 'org.testcontainers:postgresql'
-	integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
@@ -147,6 +141,14 @@ sourceSets {
 configurations {
 	integrationTestImplementation.extendsFrom implementation
 	integrationTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+	// Integration test dependencies
+	integrationTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+	integrationTestImplementation 'org.testcontainers:junit-jupiter'
+	integrationTestImplementation 'org.testcontainers:postgresql'
+	integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 task integrationTest(type: Test) {

@@ -1,0 +1,104 @@
+name: TaskMaster Task Issue
+description: Create an issue based on TaskMaster task
+title: "[Task {task-id}] "
+labels: ["task", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Create an issue directly from a TaskMaster task for tracking and collaboration.
+
+  - type: input
+    id: task-id
+    attributes:
+      label: TaskMaster Task ID
+      description: The ID from TaskMaster (e.g., 4.2)
+      placeholder: "4.2"
+    validations:
+      required: true
+      
+  - type: textarea
+    id: task-details
+    attributes:
+      label: Task Details
+      description: Copy task description from TaskMaster
+      placeholder: "Paste task description here..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation-plan
+    attributes:
+      label: Implementation Plan
+      description: High-level plan for implementing this task
+      placeholder: |
+        1. First step...
+        2. Second step...
+        3. Testing approach...
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Primary Component
+      description: Which component does this task primarily affect?
+      options:
+        - Frontend (Next.js)
+        - Backend (Spring Boot)
+        - Database (PostgreSQL)
+        - Infrastructure (AWS/Terraform)
+        - Authentication (OAuth2/JWT)
+        - Property Management
+        - User Management
+        - Maps/Geographic Search
+        - API/Integration
+        - Documentation
+        - Testing
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List any tasks or issues this depends on
+      placeholder: |
+        - Depends on Task 4.1
+        - Requires Issue #123
+        - Blocked by infrastructure setup
+
+  - type: textarea
+    id: test-strategy
+    attributes:
+      label: Test Strategy
+      description: How will this task be tested?
+      placeholder: |
+        - Unit tests for...
+        - Integration tests for...
+        - Manual testing steps...
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: What criteria must be met for this task to be considered complete?
+      placeholder: |
+        - [ ] Code implemented and reviewed
+        - [ ] Tests written and passing
+        - [ ] Documentation updated
+        - [ ] TaskMaster status updated to 'done'

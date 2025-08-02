@@ -59,8 +59,9 @@ public class GeographicSearchController {
 
         Page<PropertyWithDistanceResponse> results = geographicSearchService.searchPropertiesWithinRadius(request);
         
-        return ResponseEntity.ok(ApiResponse.success(results, 
-            String.format("Found %d properties within %s km", results.getTotalElements(), request.getRadiusKm())));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Found %d properties within %s km", results.getTotalElements(), request.getRadiusKm()),
+            results));
     }
 
     @PostMapping("/bounds")
@@ -85,8 +86,9 @@ public class GeographicSearchController {
 
         Page<PropertyWithDistanceResponse> results = geographicSearchService.searchPropertiesWithinBounds(request);
         
-        return ResponseEntity.ok(ApiResponse.success(results, 
-            String.format("Found %d properties within specified bounds", results.getTotalElements())));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Found %d properties within specified bounds", results.getTotalElements()),
+            results));
     }
 
     @GetMapping("/nearest")
@@ -107,8 +109,9 @@ public class GeographicSearchController {
         List<PropertyWithDistanceResponse> results = geographicSearchService.findNearestProperties(
             latitude, longitude, limit);
         
-        return ResponseEntity.ok(ApiResponse.success(results, 
-            String.format("Found %d nearest properties", results.size())));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Found %d nearest properties", results.size()),
+            results));
     }
 
     @GetMapping("/clusters")
@@ -136,8 +139,9 @@ public class GeographicSearchController {
         List<GeographicSearchService.PropertyClusterResponse> results = 
             geographicSearchService.getPropertyClusters(northLat, southLat, eastLng, westLng, zoomLevel);
         
-        return ResponseEntity.ok(ApiResponse.success(results, 
-            String.format("Generated %d property clusters", results.size())));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Generated %d property clusters", results.size()),
+            results));
     }
 
     @PostMapping("/comprehensive")
@@ -151,8 +155,99 @@ public class GeographicSearchController {
 
         Page<PropertyWithDistanceResponse> results = geographicSearchService.performGeographicSearch(request);
         
-        return ResponseEntity.ok(ApiResponse.success(results, 
-            String.format("Found %d properties matching geographic criteria", results.getTotalElements())));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Found %d properties matching geographic criteria", results.getTotalElements()),
+            results));
+    }
+
+    @GetMapping("/distance-filter")
+    @Operation(summary = "Filter properties by distance", 
+               description = "Filter properties within a specified distance from user's location with enhanced filtering options")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200", 
+            description = "Properties filtered successfully",
+            content = @Content(schema = @Schema(implementation = ApiResponse.class))
+        ),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400", 
+            description = "Invalid filter parameters"
+        )
+    })
+    public ResponseEntity<ApiResponse<Page<PropertyWithDistanceResponse>>> filterPropertiesByDistance(
+            @Parameter(description = "User's current latitude", required = true)
+            @RequestParam @DecimalMin(value = "-90.0") @DecimalMax(value = "90.0") BigDecimal userLatitude,
+            
+            @Parameter(description = "User's current longitude", required = true)
+            @RequestParam @DecimalMin(value = "-180.0") @DecimalMax(value = "180.0") BigDecimal userLongitude,
+            
+            @Parameter(description = "Maximum distance in kilometers", required = true)
+            @RequestParam @DecimalMin(value = "0.1") @DecimalMax(value = "100.0") BigDecimal maxDistanceKm,
+            
+            @Parameter(description = "Minimum monthly rent", required = false)
+            @RequestParam(required = false) BigDecimal minRent,
+            
+            @Parameter(description = "Maximum monthly rent", required = false)
+            @RequestParam(required = false) BigDecimal maxRent,
+            
+            @Parameter(description = "Property type filter", required = false)
+            @RequestParam(required = false) String propertyType,
+            
+            @Parameter(description = "Minimum number of rooms", required = false)
+            @RequestParam(required = false) Integer minRooms,
+            
+            @Parameter(description = "Maximum number of rooms", required = false)  
+            @RequestParam(required = false) Integer maxRooms,
+            
+            @Parameter(description = "Sort by field (distance, price, area, created)", required = false)
+            @RequestParam(defaultValue = "distance") String sortBy,
+            
+            @Parameter(description = "Sort direction (asc, desc)", required = false)
+            @RequestParam(defaultValue = "asc") String sortDirection,
+            
+            @Parameter(description = "Page number", required = false)
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            
+            @Parameter(description = "Page size", required = false)
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        
+        log.info("Distance-based filtering request: location=({}, {}), maxDistance={}km, filters=[minRent={}, maxRent={}, propertyType={}, rooms={}-{}]", 
+            userLatitude, userLongitude, maxDistanceKm, minRent, maxRent, propertyType, minRooms, maxRooms);
+
+        // Build the geographic search request
+        GeographicSearchRequest.GeographicSearchRequestBuilder requestBuilder = GeographicSearchRequest.builder()
+            .latitude(userLatitude)
+            .longitude(userLongitude)
+            .radiusKm(maxDistanceKm)
+            .sortBy(sortBy)
+            .sortDirection(sortDirection)
+            .page(page)
+            .size(size)
+            .includeDistance(true);
+
+        // Add optional filters
+        if (minRent != null) {
+            requestBuilder.minMonthlyRent(minRent);
+        }
+        if (maxRent != null) {
+            requestBuilder.maxMonthlyRent(maxRent);
+        }
+        if (minRooms != null) {
+            requestBuilder.minRooms(minRooms);
+        }
+        if (maxRooms != null) {
+            requestBuilder.maxRooms(maxRooms);
+        }
+
+        GeographicSearchRequest request = requestBuilder.build();
+        
+        // Perform the search
+        Page<PropertyWithDistanceResponse> results = geographicSearchService.searchPropertiesWithinRadius(request);
+        
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Found %d properties within %.1f km (showing page %d of %d)", 
+                results.getTotalElements(), maxDistanceKm, page + 1, results.getTotalPages()),
+            results));
     }
 
     @GetMapping("/distance")
@@ -183,8 +278,9 @@ public class GeographicSearchController {
             .bearing(bearing)
             .build();
         
-        return ResponseEntity.ok(ApiResponse.success(response, 
-            String.format("Distance calculated: %.2f km", distance)));
+        return ResponseEntity.ok(ApiResponse.success(
+            String.format("Distance calculated: %.2f km", distance),
+            response));
     }
 
     /**

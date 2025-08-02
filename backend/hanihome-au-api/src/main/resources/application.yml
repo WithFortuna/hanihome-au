@@ -83,6 +83,19 @@ spring:
       max-file-size: ${MAX_FILE_SIZE:10MB}
       max-request-size: ${MAX_FILE_SIZE:10MB}
       enabled: true
+  # Mail Configuration
+  mail:
+    host: ${MAIL_HOST:smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    from: ${MAIL_FROM:noreply@hanihome.com.au}
 
 # Server Configuration
 server:
@@ -125,20 +138,6 @@ aws:
     bucket-backups: ${AWS_S3_BUCKET_BACKUPS:hanihome-au-backups-dev} 
     bucket-logs: ${AWS_S3_BUCKET_LOGS:hanihome-au-logs-dev}
 
-# Mail Configuration
-spring:
-  mail:
-    host: ${MAIL_HOST:smtp.mailtrap.io}
-    port: ${MAIL_PORT:2525}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-    from: ${MAIL_FROM:noreply@hanihome.com.au}
 
 # CORS Configuration
 cors:
@@ -165,7 +164,7 @@ logging:
   level:
     com.hanihome: ${LOG_LEVEL:DEBUG}
     org.springframework.security: DEBUG
-    org.hibernate.SQL: ${DEBUG:true}
+    org.hibernate.SQL: ${DEBUG:DEBUG}
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

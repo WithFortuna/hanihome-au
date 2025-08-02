@@ -27,7 +27,7 @@ public class AuthController {
             @Valid @RequestBody RefreshTokenRequest request) {
         try {
             String newAccessToken = jwtTokenProvider.refreshAccessToken(request.getRefreshToken());
-            Long userId = jwtTokenProvider.getUserIdFromToken(request.getRefreshToken());
+            Long userId = jwtTokenProvider.getUserIdFromTokenAsLong(request.getRefreshToken());
             String role = jwtTokenProvider.getRoleFromToken(newAccessToken);
 
             JwtAuthenticationResponse response = JwtAuthenticationResponse.builder()

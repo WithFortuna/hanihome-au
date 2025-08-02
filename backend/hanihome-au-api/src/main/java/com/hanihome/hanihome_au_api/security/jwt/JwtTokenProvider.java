@@ -40,7 +40,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
-                .setExpirationTime(expiryDate)
+                .setExpiration(expiryDate)
                 .claim("role", role)
                 .claim("type", "ACCESS")
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -54,7 +54,7 @@ public class JwtTokenProvider {
         String refreshToken = Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(now)
-                .setExpirationTime(expiryDate)
+                .setExpiration(expiryDate)
                 .claim("type", "REFRESH")
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
@@ -68,7 +68,7 @@ public class JwtTokenProvider {
     }
 
     public Long getUserIdFromTokenAsLong(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
@@ -78,7 +78,7 @@ public class JwtTokenProvider {
     }
 
     public String getRoleFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
@@ -88,7 +88,7 @@ public class JwtTokenProvider {
     }
 
     public String getTokenTypeFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
@@ -105,7 +105,7 @@ public class JwtTokenProvider {
                 return false;
             }
 
-            Jwts.parserBuilder()
+            Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);
@@ -167,7 +167,7 @@ public class JwtTokenProvider {
 
     public void blacklistToken(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
+            Claims claims = Jwts.parser()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token)
@@ -247,7 +247,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(userId)
                 .setIssuedAt(now)
-                .setExpirationTime(expiryDate)
+                .expiration(expiryDate)
                 .claim("role", "TENANT")
                 .claim("type", "ACCESS")
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -255,7 +255,7 @@ public class JwtTokenProvider {
     }
 
     public String getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
+        Claims claims = Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)

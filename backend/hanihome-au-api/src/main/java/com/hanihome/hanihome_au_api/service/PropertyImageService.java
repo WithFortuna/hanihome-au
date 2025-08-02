@@ -1,5 +1,6 @@
 package com.hanihome.hanihome_au_api.service;
 
+import com.hanihome.hanihome_au_api.service.FileStorageService;
 import com.hanihome.hanihome_au_api.domain.entity.Property;
 import com.hanihome.hanihome_au_api.domain.entity.PropertyImage;
 import com.hanihome.hanihome_au_api.repository.PropertyImageRepository;

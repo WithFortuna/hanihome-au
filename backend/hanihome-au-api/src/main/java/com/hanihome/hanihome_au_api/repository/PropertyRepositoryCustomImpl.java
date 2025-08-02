@@ -396,4 +396,45 @@ public class PropertyRepositoryCustomImpl implements PropertyRepositoryCustom {
             lat1, lat2, lon2, lon1
         );
     }
+
+    @Override
+    public long countPropertiesWithCriteria(PropertySearchCriteria criteria) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(property.status.eq(PropertyStatus.ACTIVE));
+
+        addBasicFilters(builder, criteria);
+        addPriceFilters(builder, criteria);
+        addAreaAndRoomFilters(builder, criteria);
+        addLocationFilters(builder, criteria);
+        addFeatureFilters(builder, criteria);
+        addDateFilters(builder, criteria);
+        addFloorFilters(builder, criteria);
+        addTextSearch(builder, criteria);
+        addRequiredOptionsFilter(builder, criteria);
+
+        return queryFactory
+            .selectFrom(property)
+            .where(builder)
+            .fetchCount();
+    }
+
+    @Override
+    public List<Property> findNearbyProperties(BigDecimal latitude, BigDecimal longitude, Double radiusKm, int limit) {
+        if (latitude == null || longitude == null || radiusKm == null) {
+            return List.of();
+        }
+
+        NumberExpression<Double> distance = calculateDistance(latitude, longitude, 
+                                                            property.latitude, property.longitude);
+
+        return queryFactory
+            .selectFrom(property)
+            .where(property.status.eq(PropertyStatus.ACTIVE)
+                .and(property.latitude.isNotNull())
+                .and(property.longitude.isNotNull())
+                .and(distance.loe(radiusKm)))
+            .orderBy(distance.asc())
+            .limit(limit)
+            .fetch();
+    }
 }

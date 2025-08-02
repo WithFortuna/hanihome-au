@@ -6,6 +6,8 @@
 
 import React from 'react';
 import { useGoogleMaps, useMapEvents } from '@/hooks/use-google-maps';
+import { useMobileDetection } from '@/hooks/use-mobile-detection';
+import MapSkeleton from './map-skeleton';
 import { MapPosition, MapEventHandlers } from '@/lib/maps/types';
 
 interface GoogleMapProps {
@@ -27,19 +29,35 @@ export default function GoogleMap({
   onMapError,
   eventHandlers = {},
 }: GoogleMapProps) {
+  const { isMobile, isTablet, screenSize, height: screenHeight } = useMobileDetection();
+  
   const { map, isLoaded, isLoading, error, mapRef } = useGoogleMaps({
     center,
     zoom,
     onLoad: onMapLoad,
     onError: onMapError,
+    isMobile,
   });
 
   // Set up event handlers
   useMapEvents(map, eventHandlers);
 
+  // Responsive height calculation
+  const getResponsiveHeight = (): string => {
+    if (isMobile) {
+      // On mobile, use a percentage of screen height to be more flexible
+      return `${Math.min(screenHeight * 0.4, 300)}px`;
+    } else if (isTablet) {
+      return '350px';
+    } else {
+      return '400px';
+    }
+  };
+
   const defaultStyle: React.CSSProperties = {
     width: '100%',
-    height: '400px',
+    height: getResponsiveHeight(),
+    minHeight: isMobile ? '250px' : '300px',
     ...style,
   };
 
@@ -59,15 +77,12 @@ export default function GoogleMap({
 
   if (isLoading) {
     return (
-      <div 
-        className={`flex items-center justify-center bg-gray-100 rounded-lg ${className}`}
+      <MapSkeleton
+        className={className}
         style={defaultStyle}
-      >
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading Map...</p>
-        </div>
-      </div>
+        showControls={!isMobile}
+        showLegend={!isMobile}
+      />
     );
   }
 

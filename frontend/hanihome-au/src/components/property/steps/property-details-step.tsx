@@ -1,8 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { PropertyFormData, RentalType } from '@/lib/types/property';
+import { 
+  PropertyFormData, 
+  RentalType, 
+  PropertyType,
+  PROPERTY_TYPE_CONFIG,
+  RENTAL_TYPE_CONFIG 
+} from '@/lib/types/property';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AddressSearchWithMap } from '../address-search-with-map';
@@ -10,9 +16,21 @@ import { AddressSearchWithMap } from '../address-search-with-map';
 export function PropertyDetailsStep() {
   const { register, formState: { errors }, watch, setValue } = useFormContext<PropertyFormData>();
   
+  const watchedPropertyType = watch('propertyType');
   const watchedRentalType = watch('rentalType');
   const watchedDeposit = watch('deposit');
   const watchedMonthlyRent = watch('monthlyRent');
+
+  // Get property type and rental type configurations
+  const propertyConfig = watchedPropertyType ? PROPERTY_TYPE_CONFIG[watchedPropertyType as PropertyType] : null;
+  const rentalConfig = watchedRentalType ? RENTAL_TYPE_CONFIG[watchedRentalType as RentalType] : null;
+
+  // Auto-set rooms for property types that don't show room selection
+  useEffect(() => {
+    if (propertyConfig && !propertyConfig.showRooms && propertyConfig.defaultRooms) {
+      setValue('rooms', propertyConfig.defaultRooms);
+    }
+  }, [propertyConfig, setValue]);
 
   const formatNumber = (value: string) => {
     const number = value.replace(/[^\d]/g, '');
@@ -21,95 +39,114 @@ export function PropertyDetailsStep() {
 
   return (
     <div className="space-y-6">
+      {/* Property Type Help Text */}
+      {propertyConfig?.helpText && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-700">{propertyConfig.helpText}</p>
+        </div>
+      )}
+
       {/* Property Specifications */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="area">면적 (㎡)</Label>
-          <Input
-            id="area"
-            type="number"
-            step="0.01"
-            {...register('area', { valueAsNumber: true })}
-            placeholder="예: 33.12"
-            className={errors.area ? 'border-red-500' : ''}
-          />
-          {errors.area && (
-            <p className="text-sm text-red-500">{errors.area.message}</p>
-          )}
-        </div>
+      <div className="space-y-4">
+        <h4 className="text-lg font-semibold text-gray-800">매물 사양</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="area">면적 (㎡) *</Label>
+            <Input
+              id="area"
+              type="number"
+              step="0.01"
+              {...register('area', { valueAsNumber: true })}
+              placeholder="예: 33.12"
+              className={errors.area ? 'border-red-500' : ''}
+            />
+            {errors.area && (
+              <p className="text-sm text-red-500">{errors.area.message}</p>
+            )}
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="rooms">방 개수</Label>
-          <Input
-            id="rooms"
-            type="number"
-            {...register('rooms', { valueAsNumber: true })}
-            placeholder="예: 2"
-            className={errors.rooms ? 'border-red-500' : ''}
-          />
-          {errors.rooms && (
-            <p className="text-sm text-red-500">{errors.rooms.message}</p>
+          {propertyConfig?.showRooms && (
+            <div className="space-y-2">
+              <Label htmlFor="rooms">방 개수 *</Label>
+              <Input
+                id="rooms"
+                type="number"
+                {...register('rooms', { valueAsNumber: true })}
+                placeholder={`예: ${propertyConfig.defaultRooms || 2}`}
+                className={errors.rooms ? 'border-red-500' : ''}
+              />
+              {errors.rooms && (
+                <p className="text-sm text-red-500">{errors.rooms.message}</p>
+              )}
+            </div>
           )}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="bathrooms">욕실 개수</Label>
-          <Input
-            id="bathrooms"
-            type="number"
-            {...register('bathrooms', { valueAsNumber: true })}
-            placeholder="예: 1"
-            className={errors.bathrooms ? 'border-red-500' : ''}
-          />
-          {errors.bathrooms && (
-            <p className="text-sm text-red-500">{errors.bathrooms.message}</p>
+          {propertyConfig?.showBathrooms && (
+            <div className="space-y-2">
+              <Label htmlFor="bathrooms">욕실 개수</Label>
+              <Input
+                id="bathrooms"
+                type="number"
+                {...register('bathrooms', { valueAsNumber: true })}
+                placeholder="예: 1"
+                className={errors.bathrooms ? 'border-red-500' : ''}
+              />
+              {errors.bathrooms && (
+                <p className="text-sm text-red-500">{errors.bathrooms.message}</p>
+              )}
+            </div>
           )}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="availableDate">입주 가능일</Label>
-          <Input
-            id="availableDate"
-            type="date"
-            {...register('availableDate')}
-            className={errors.availableDate ? 'border-red-500' : ''}
-          />
-          {errors.availableDate && (
-            <p className="text-sm text-red-500">{errors.availableDate.message}</p>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="availableDate">입주 가능일</Label>
+            <Input
+              id="availableDate"
+              type="date"
+              {...register('availableDate')}
+              className={errors.availableDate ? 'border-red-500' : ''}
+            />
+            {errors.availableDate && (
+              <p className="text-sm text-red-500">{errors.availableDate.message}</p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Floor Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="floor">해당 층</Label>
-          <Input
-            id="floor"
-            type="number"
-            {...register('floor', { valueAsNumber: true })}
-            placeholder="예: 3"
-            className={errors.floor ? 'border-red-500' : ''}
-          />
-          {errors.floor && (
-            <p className="text-sm text-red-500">{errors.floor.message}</p>
-          )}
-        </div>
+      {/* Floor Information - Show for apartment/officetel types */}
+      {(watchedPropertyType === PropertyType.APARTMENT || watchedPropertyType === PropertyType.OFFICETEL) && (
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-gray-800">층수 정보</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="floor">해당 층 *</Label>
+              <Input
+                id="floor"
+                type="number"
+                {...register('floor', { valueAsNumber: true })}
+                placeholder="예: 3"
+                className={errors.floor ? 'border-red-500' : ''}
+              />
+              {errors.floor && (
+                <p className="text-sm text-red-500">{errors.floor.message}</p>
+              )}
+            </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="totalFloors">총 층수</Label>
-          <Input
-            id="totalFloors"
-            type="number"
-            {...register('totalFloors', { valueAsNumber: true })}
-            placeholder="예: 5"
-            className={errors.totalFloors ? 'border-red-500' : ''}
-          />
-          {errors.totalFloors && (
-            <p className="text-sm text-red-500">{errors.totalFloors.message}</p>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="totalFloors">총 층수 *</Label>
+              <Input
+                id="totalFloors"
+                type="number"
+                {...register('totalFloors', { valueAsNumber: true })}
+                placeholder="예: 5"
+                className={errors.totalFloors ? 'border-red-500' : ''}
+              />
+              {errors.totalFloors && (
+                <p className="text-sm text-red-500">{errors.totalFloors.message}</p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Address Information */}
       <div className="space-y-4">
@@ -135,69 +172,62 @@ export function PropertyDetailsStep() {
 
       {/* Price Information */}
       <div className="space-y-4">
-        <h4 className="text-lg font-semibold text-gray-800">가격 정보</h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-lg font-semibold text-gray-800">가격 정보</h4>
+          {rentalConfig?.helpText && (
+            <span className="text-sm text-gray-500">{rentalConfig.helpText}</span>
+          )}
+        </div>
         
-        {watchedRentalType !== RentalType.SALE && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {rentalConfig?.showDeposit && (
             <div className="space-y-2">
-              <Label htmlFor="deposit">보증금 (만원)</Label>
+              <Label htmlFor="deposit">
+                {watchedRentalType === RentalType.SALE ? '매매가 (만원) *' : '보증금 (만원) *'}
+              </Label>
               <Input
                 id="deposit"
                 type="number"
                 {...register('deposit', { valueAsNumber: true })}
-                placeholder="예: 1000"
+                placeholder={watchedRentalType === RentalType.SALE ? "예: 50000" : "예: 1000"}
                 className={errors.deposit ? 'border-red-500' : ''}
               />
               {errors.deposit && (
                 <p className="text-sm text-red-500">{errors.deposit.message}</p>
               )}
             </div>
+          )}
 
-            {watchedRentalType === RentalType.MONTHLY && (
-              <div className="space-y-2">
-                <Label htmlFor="monthlyRent">월세 (만원)</Label>
-                <Input
-                  id="monthlyRent"
-                  type="number"
-                  {...register('monthlyRent', { valueAsNumber: true })}
-                  placeholder="예: 50"
-                  className={errors.monthlyRent ? 'border-red-500' : ''}
-                />
-                {errors.monthlyRent && (
-                  <p className="text-sm text-red-500">{errors.monthlyRent.message}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+          {rentalConfig?.showMonthlyRent && (
+            <div className="space-y-2">
+              <Label htmlFor="monthlyRent">월세 (만원) *</Label>
+              <Input
+                id="monthlyRent"
+                type="number"
+                {...register('monthlyRent', { valueAsNumber: true })}
+                placeholder="예: 50"
+                className={errors.monthlyRent ? 'border-red-500' : ''}
+              />
+              {errors.monthlyRent && (
+                <p className="text-sm text-red-500">{errors.monthlyRent.message}</p>
+              )}
+            </div>
+          )}
 
-        {watchedRentalType === RentalType.SALE && (
-          <div className="space-y-2">
-            <Label htmlFor="deposit">매매가 (만원)</Label>
-            <Input
-              id="deposit"
-              type="number"
-              {...register('deposit', { valueAsNumber: true })}
-              placeholder="예: 50000"
-              className={errors.deposit ? 'border-red-500' : ''}
-            />
-            {errors.deposit && (
-              <p className="text-sm text-red-500">{errors.deposit.message}</p>
-            )}
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <Label htmlFor="maintenanceFee">관리비 (만원)</Label>
-          <Input
-            id="maintenanceFee"
-            type="number"
-            {...register('maintenanceFee', { valueAsNumber: true })}
-            placeholder="예: 5"
-            className={errors.maintenanceFee ? 'border-red-500' : ''}
-          />
-          {errors.maintenanceFee && (
-            <p className="text-sm text-red-500">{errors.maintenanceFee.message}</p>
+          {rentalConfig?.showMaintenanceFee && (
+            <div className="space-y-2">
+              <Label htmlFor="maintenanceFee">관리비 (만원)</Label>
+              <Input
+                id="maintenanceFee"
+                type="number"
+                {...register('maintenanceFee', { valueAsNumber: true })}
+                placeholder="예: 5"
+                className={errors.maintenanceFee ? 'border-red-500' : ''}
+              />
+              {errors.maintenanceFee && (
+                <p className="text-sm text-red-500">{errors.maintenanceFee.message}</p>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -3,7 +3,7 @@ package com.hanihome.hanihome_au_api.presentation.web.user;
 import com.hanihome.hanihome_au_api.application.user.dto.CreateUserCommand;
 import com.hanihome.hanihome_au_api.application.user.dto.UserResponseDto;
 import com.hanihome.hanihome_au_api.application.user.usecase.CreateUserUseCase;
-import com.hanihome.hanihome_au_api.presentation.dto.ApiResponse;
+import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
 import com.hanihome.hanihome_au_api.presentation.dto.CreateUserRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

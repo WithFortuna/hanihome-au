@@ -20,7 +20,6 @@ public class SpringDomainEventPublisher implements DomainEventPublisher {
         applicationEventPublisher.publishEvent(domainEvent);
     }
 
-    @Override
     public void publishAll(List<Object> domainEvents) {
         domainEvents.forEach(this::publish);
     }

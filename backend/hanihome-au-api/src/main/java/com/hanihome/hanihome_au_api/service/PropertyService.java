@@ -8,7 +8,7 @@ import com.hanihome.hanihome_au_api.dto.request.PropertySearchCriteria;
 import com.hanihome.hanihome_au_api.dto.request.PropertyUpdateRequest;
 import com.hanihome.hanihome_au_api.dto.response.PropertyDetailResponse;
 import com.hanihome.hanihome_au_api.dto.response.PropertyListResponse;
-import com.hanihome.hanihome_au_api.exception.PropertyException;
+import com.hanihome.hanihome_au_api.domain.property.exception.PropertyException;
 import com.hanihome.hanihome_au_api.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

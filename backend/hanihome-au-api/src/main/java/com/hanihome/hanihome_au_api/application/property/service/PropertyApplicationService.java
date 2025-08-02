@@ -8,9 +8,8 @@ import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
 import com.hanihome.hanihome_au_api.domain.property.service.PropertyDomainService;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyId;
-import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyStatus;
+import com.hanihome.hanihome_au_api.domain.shared.event.DomainEventPublisher;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
-import com.hanihome.hanihome_au_api.domain.shared.service.DomainEventPublisher;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

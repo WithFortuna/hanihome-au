@@ -1,8 +1,20 @@
 package com.hanihome.hanihome_au_api.domain.shared.event;
 
+/**
+ * Domain service for publishing domain events
+ * Abstracts the event publishing mechanism from domain layer
+ */
 public interface DomainEventPublisher {
-    
-    void publish(Object domainEvent);
-    
-    void publishAll(java.util.List<Object> domainEvents);
+
+    /**
+     * Publishes a domain event
+     */
+    void publish(Object event);
+
+    /**
+     * Publishes multiple domain events
+     */
+    default void publishAll(Iterable<Object> events) {
+        events.forEach(this::publish);
+    }
 }

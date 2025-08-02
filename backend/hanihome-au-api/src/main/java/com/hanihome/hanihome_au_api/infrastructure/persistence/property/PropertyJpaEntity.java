@@ -1,10 +1,13 @@
 package com.hanihome.hanihome_au_api.infrastructure.persistence.property;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-
+@Getter @Setter
 @Entity
 @Table(name = "properties")
 public class PropertyJpaEntity {
@@ -50,13 +53,19 @@ public class PropertyJpaEntity {
     
     @Column(name = "maintenance_fee", precision = 12, scale = 0)
     private BigDecimal maintenanceFee;
-    
+
+    @Column(name = "rent_price", precision = 10, scale = 0)
+    private BigDecimal rentPrice;
+
     @Column(precision = 8, scale = 2)
     private BigDecimal area;
+
+    private Double floorArea;
     
     private Integer rooms;
     private Integer bathrooms;
     private Integer floor;
+    private Integer bedrooms;
     
     @Column(name = "total_floors")
     private Integer totalFloors;
@@ -123,106 +132,4 @@ public class PropertyJpaEntity {
         ACTIVE, INACTIVE, PENDING_APPROVAL, REJECTED, COMPLETED, SUSPENDED
     }
 
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
-    
-    public String getDetailAddress() { return detailAddress; }
-    public void setDetailAddress(String detailAddress) { this.detailAddress = detailAddress; }
-    
-    public String getZipCode() { return zipCode; }
-    public void setZipCode(String zipCode) { this.zipCode = zipCode; }
-    
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-    
-    public String getDistrict() { return district; }
-    public void setDistrict(String district) { this.district = district; }
-    
-    public PropertyTypeEnum getPropertyType() { return propertyType; }
-    public void setPropertyType(PropertyTypeEnum propertyType) { this.propertyType = propertyType; }
-    
-    public RentalTypeEnum getRentalType() { return rentalType; }
-    public void setRentalType(RentalTypeEnum rentalType) { this.rentalType = rentalType; }
-    
-    public BigDecimal getDeposit() { return deposit; }
-    public void setDeposit(BigDecimal deposit) { this.deposit = deposit; }
-    
-    public BigDecimal getMonthlyRent() { return monthlyRent; }
-    public void setMonthlyRent(BigDecimal monthlyRent) { this.monthlyRent = monthlyRent; }
-    
-    public BigDecimal getMaintenanceFee() { return maintenanceFee; }
-    public void setMaintenanceFee(BigDecimal maintenanceFee) { this.maintenanceFee = maintenanceFee; }
-    
-    public BigDecimal getArea() { return area; }
-    public void setArea(BigDecimal area) { this.area = area; }
-    
-    public Integer getRooms() { return rooms; }
-    public void setRooms(Integer rooms) { this.rooms = rooms; }
-    
-    public Integer getBathrooms() { return bathrooms; }
-    public void setBathrooms(Integer bathrooms) { this.bathrooms = bathrooms; }
-    
-    public Integer getFloor() { return floor; }
-    public void setFloor(Integer floor) { this.floor = floor; }
-    
-    public Integer getTotalFloors() { return totalFloors; }
-    public void setTotalFloors(Integer totalFloors) { this.totalFloors = totalFloors; }
-    
-    public LocalDate getAvailableDate() { return availableDate; }
-    public void setAvailableDate(LocalDate availableDate) { this.availableDate = availableDate; }
-    
-    public PropertyStatusEnum getStatus() { return status; }
-    public void setStatus(PropertyStatusEnum status) { this.status = status; }
-    
-    public Long getLandlordId() { return landlordId; }
-    public void setLandlordId(Long landlordId) { this.landlordId = landlordId; }
-    
-    public Long getAgentId() { return agentId; }
-    public void setAgentId(Long agentId) { this.agentId = agentId; }
-    
-    public BigDecimal getLatitude() { return latitude; }
-    public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
-    
-    public BigDecimal getLongitude() { return longitude; }
-    public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
-    
-    public Boolean getParkingAvailable() { return parkingAvailable; }
-    public void setParkingAvailable(Boolean parkingAvailable) { this.parkingAvailable = parkingAvailable; }
-    
-    public Boolean getPetAllowed() { return petAllowed; }
-    public void setPetAllowed(Boolean petAllowed) { this.petAllowed = petAllowed; }
-    
-    public Boolean getFurnished() { return furnished; }
-    public void setFurnished(Boolean furnished) { this.furnished = furnished; }
-    
-    public Boolean getShortTermAvailable() { return shortTermAvailable; }
-    public void setShortTermAvailable(Boolean shortTermAvailable) { this.shortTermAvailable = shortTermAvailable; }
-    
-    public String getAdminNotes() { return adminNotes; }
-    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
-    
-    public LocalDateTime getApprovedAt() { return approvedAt; }
-    public void setApprovedAt(LocalDateTime approvedAt) { this.approvedAt = approvedAt; }
-    
-    public Long getApprovedBy() { return approvedBy; }
-    public void setApprovedBy(Long approvedBy) { this.approvedBy = approvedBy; }
-    
-    public LocalDateTime getCreatedDate() { return createdDate; }
-    public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
-    
-    public LocalDateTime getModifiedDate() { return modifiedDate; }
-    public void setModifiedDate(LocalDateTime modifiedDate) { this.modifiedDate = modifiedDate; }
-    
-    public Long getVersion() { return version; }
-    public void setVersion(Long version) { this.version = version; }
 }

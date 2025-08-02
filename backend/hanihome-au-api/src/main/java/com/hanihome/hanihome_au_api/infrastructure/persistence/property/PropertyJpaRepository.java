@@ -51,7 +51,7 @@ public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, 
     long countByStatus(@Param("status") PropertyJpaEntity.PropertyStatusEnum status);
     
     @Query(value = """
-        SELECT AVG(p.rent_price) FROM properties p 
+        SELECT AVG(p.rent_price) FROM PropertyJpaEntity p 
         WHERE p.latitude IS NOT NULL 
         AND p.longitude IS NOT NULL
         AND (6371 * acos(cos(radians(:latitude)) * cos(radians(p.latitude)) 

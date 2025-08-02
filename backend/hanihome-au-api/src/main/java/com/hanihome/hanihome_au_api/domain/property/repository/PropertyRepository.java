@@ -2,8 +2,8 @@ package com.hanihome.hanihome_au_api.domain.property.repository;
 
 import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyId;
-import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyStatus;
-import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyStatus;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertySpecs;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Address;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Money;

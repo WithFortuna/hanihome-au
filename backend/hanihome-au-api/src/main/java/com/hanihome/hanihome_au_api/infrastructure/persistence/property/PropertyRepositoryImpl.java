@@ -3,6 +3,9 @@ package com.hanihome.hanihome_au_api.infrastructure.persistence.property;
 import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.*;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyStatus;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Address;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Money;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
@@ -11,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
+import org.springframework.data.domain.PageRequest;
 
 @Component
 public class PropertyRepositoryImpl implements PropertyRepository {
@@ -20,6 +25,7 @@ public class PropertyRepositoryImpl implements PropertyRepository {
     public PropertyRepositoryImpl(PropertyJpaRepository propertyJpaRepository) {
         this.propertyJpaRepository = propertyJpaRepository;
     }
+
 
     @Override
     public Property save(Property property) {
@@ -81,6 +87,81 @@ public class PropertyRepositoryImpl implements PropertyRepository {
     @Override
     public void delete(Property property) {
         propertyJpaRepository.deleteById(property.getId().getValue());
+    }
+
+    @Override
+    public List<Property> findSimilarProperties(Property property, int limit) {
+        BigDecimal priceThreshold = property.getRentPrice().getAmount().multiply(BigDecimal.valueOf(0.2)); // 20% price variance
+        
+        PropertyJpaEntity.PropertyTypeEnum typeEnum = 
+                PropertyJpaEntity.PropertyTypeEnum.valueOf(property.getType().name());
+        
+        List<PropertyJpaEntity> entities = propertyJpaRepository.findSimilarProperties(
+                typeEnum,
+                property.getSpecs().getBedrooms(),
+                property.getSpecs().getBathrooms(),
+                property.getRentPrice().getAmount().doubleValue(),
+                priceThreshold.doubleValue(),
+                property.getId().getValue(),
+                PageRequest.of(0, limit)
+        );
+        
+        return entities.stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Property> findByBudgetRange(Money minBudget, Money maxBudget) {
+        List<PropertyJpaEntity> entities = propertyJpaRepository.findByBudgetRange(
+                minBudget.getAmount().doubleValue(), 
+                maxBudget.getAmount().doubleValue()
+        );
+        return entities.stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Property> findBySpecsAndBudget(PropertySpecs minimumSpecs, Money maxBudget) {
+        List<PropertyJpaEntity> entities = propertyJpaRepository.findBySpecsAndBudget(
+                minimumSpecs.getBedrooms(),
+                minimumSpecs.getBathrooms(),
+                minimumSpecs.getFloorArea(),
+                maxBudget.getAmount().doubleValue()
+        );
+        return entities.stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long countByStatus(PropertyStatus status) {
+        PropertyJpaEntity.PropertyStatusEnum statusEnum = 
+                PropertyJpaEntity.PropertyStatusEnum.valueOf(status.name());
+        return propertyJpaRepository.countByStatus(statusEnum);
+    }
+
+    @Override
+    public Money calculateAverageRentInArea(Address area, Double radiusKm) {
+        Double averageRent = propertyJpaRepository.calculateAverageRentInArea(
+                area.getLatitude(), 
+                area.getLongitude(), 
+                radiusKm
+        );
+        
+        if (averageRent == null) {
+            return Money.of(BigDecimal.ZERO, "AUD");
+        }
+        
+        return Money.of(BigDecimal.valueOf(averageRent), "AUD");
+    }
+
+    @Override
+    public boolean existsByOwnerIdAndStatus(UserId ownerId, PropertyStatus status) {
+        PropertyJpaEntity.PropertyStatusEnum statusEnum = 
+                PropertyJpaEntity.PropertyStatusEnum.valueOf(status.name());
+        return propertyJpaRepository.existsByOwnerIdAndStatus(ownerId.getValue(), statusEnum);
     }
 
     private PropertyJpaEntity mapToEntity(Property property) {

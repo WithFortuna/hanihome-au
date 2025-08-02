@@ -1,6 +1,9 @@
 package com.hanihome.hanihome_au_api.domain.property.entity;
 
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.*;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyStatus;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyCreatedEvent;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyStatusChangedEvent;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyPriceChangedEvent;
@@ -232,7 +235,7 @@ public class Property extends AggregateRoot<PropertyId> {
     }
 
     private void ensureCanBeModified() {
-        if (status == PropertyStatus.RENTED || status == PropertyStatus.DELETED) {
+        if (!status.canBeModified()) {
             throw new IllegalStateException("Cannot modify property in status: " + status);
         }
     }

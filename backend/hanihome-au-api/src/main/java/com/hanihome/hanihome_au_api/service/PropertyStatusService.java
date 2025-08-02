@@ -3,7 +3,7 @@ package com.hanihome.hanihome_au_api.service;
 import com.hanihome.hanihome_au_api.domain.entity.Property;
 import com.hanihome.hanihome_au_api.domain.entity.PropertyStatusHistory;
 import com.hanihome.hanihome_au_api.domain.enums.PropertyStatus;
-import com.hanihome.hanihome_au_api.exception.PropertyException;
+import com.hanihome.hanihome_au_api.domain.property.exception.PropertyException;
 import com.hanihome.hanihome_au_api.repository.PropertyRepository;
 import com.hanihome.hanihome_au_api.repository.PropertyStatusHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +28,15 @@ public class PropertyStatusService {
     private final PropertyStatusHistoryRepository statusHistoryRepository;
 
     private static final Map<PropertyStatus, Set<PropertyStatus>> ALLOWED_TRANSITIONS = Map.of(
-        PropertyStatus.PENDING_APPROVAL, Set.of(PropertyStatus.ACTIVE, PropertyStatus.REJECTED),
-        PropertyStatus.ACTIVE, Set.of(PropertyStatus.INACTIVE, PropertyStatus.COMPLETED, PropertyStatus.SUSPENDED),
-        PropertyStatus.INACTIVE, Set.of(PropertyStatus.ACTIVE, PropertyStatus.SUSPENDED),
-        PropertyStatus.REJECTED, Set.of(PropertyStatus.PENDING_APPROVAL),
-        PropertyStatus.SUSPENDED, Set.of(PropertyStatus.ACTIVE, PropertyStatus.INACTIVE),
-        PropertyStatus.COMPLETED, Set.of() // Final state, no transitions allowed
+        PropertyStatus.DRAFT, Set.of(PropertyStatus.PENDING_APPROVAL, PropertyStatus.DELETED),
+        PropertyStatus.PENDING_APPROVAL, Set.of(PropertyStatus.ACTIVE, PropertyStatus.REJECTED, PropertyStatus.DRAFT),
+        PropertyStatus.ACTIVE, Set.of(PropertyStatus.INACTIVE, PropertyStatus.RENTED, PropertyStatus.COMPLETED, PropertyStatus.SUSPENDED),
+        PropertyStatus.INACTIVE, Set.of(PropertyStatus.ACTIVE, PropertyStatus.SUSPENDED, PropertyStatus.DELETED),
+        PropertyStatus.RENTED, Set.of(PropertyStatus.COMPLETED, PropertyStatus.ACTIVE),
+        PropertyStatus.REJECTED, Set.of(PropertyStatus.DRAFT, PropertyStatus.PENDING_APPROVAL),
+        PropertyStatus.SUSPENDED, Set.of(PropertyStatus.ACTIVE, PropertyStatus.INACTIVE, PropertyStatus.DELETED),
+        PropertyStatus.COMPLETED, Set.of(), // Final state, no transitions allowed
+        PropertyStatus.DELETED, Set.of() // Final state, no transitions allowed
     );
 
     public Property changePropertyStatus(Long propertyId, PropertyStatus newStatus, Long changedBy, String reason, String notes) {

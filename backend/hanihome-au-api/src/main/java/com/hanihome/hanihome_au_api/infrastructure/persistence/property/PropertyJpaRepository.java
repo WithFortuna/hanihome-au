@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, Long> {
     
-    List<PropertyJpaEntity> findByOwnerId(Long ownerId);
+    List<PropertyJpaEntity> findByLandlordId(Long landlordId);
     
     List<PropertyJpaEntity> findByStatus(PropertyJpaEntity.PropertyStatusEnum status);
     
@@ -62,7 +62,7 @@ public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, 
                                      @Param("longitude") Double longitude, 
                                      @Param("radiusKm") Double radiusKm);
     
-    boolean existsByOwnerIdAndStatus(Long ownerId, PropertyJpaEntity.PropertyStatusEnum status);
+    boolean existsByLandlordIdAndStatus(Long landlordId, PropertyJpaEntity.PropertyStatusEnum status);
     
     @Query("""
         SELECT p FROM PropertyJpaEntity p 

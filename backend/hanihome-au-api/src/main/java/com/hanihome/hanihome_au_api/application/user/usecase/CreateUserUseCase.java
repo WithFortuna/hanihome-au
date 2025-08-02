@@ -7,13 +7,13 @@ import com.hanihome.hanihome_au_api.domain.user.repository.UserRepository;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.Email;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
 public class CreateUserUseCase {
     private final UserRepository userRepository;
-
-    public CreateUserUseCase(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     public UserResponseDto execute(CreateUserCommand command) {
         if (command == null) {

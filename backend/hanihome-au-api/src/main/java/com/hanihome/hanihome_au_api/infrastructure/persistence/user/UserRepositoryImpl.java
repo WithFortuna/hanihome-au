@@ -48,18 +48,23 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private UserJpaEntity mapToEntity(User user) {
-        return new UserJpaEntity(
-            user.getId().getValue(),
-            user.getEmail().getValue(),
-            user.getName(),
-            user.getPhoneNumber(),
-            UserJpaEntity.UserRoleEnum.valueOf(user.getRole().name()),
-            user.isEmailVerified(),
-            user.isPhoneVerified(),
-            user.getCreatedAt(),
-            user.getUpdatedAt(),
-            user.getLastLoginAt()
-        );
+        UserJpaEntity entity = new UserJpaEntity();
+        entity.setId(user.getId().getValue());
+        entity.setEmail(user.getEmail().getValue());
+        entity.setName(user.getName());
+        entity.setPhone(user.getPhoneNumber());
+        entity.setRole(UserJpaEntity.UserRoleEnum.valueOf(user.getRole().name()));
+        entity.setIsEmailVerified(user.isEmailVerified());
+        entity.setCreatedAt(user.getCreatedAt());
+        entity.setUpdatedAt(user.getUpdatedAt());
+        entity.setLastLoginAt(user.getLastLoginAt());
+        
+        // Set default OAuth provider since domain doesn't have these yet
+        entity.setOauthProvider(UserJpaEntity.OAuthProviderEnum.GOOGLE);
+        entity.setOauthProviderId("default");
+        entity.setIsActive(true);
+        
+        return entity;
     }
 
     private User mapToDomain(UserJpaEntity entity) {
@@ -69,16 +74,12 @@ public class UserRepositoryImpl implements UserRepository {
         
         User user = User.create(userId, email, entity.getName(), role);
         
-        if (entity.getPhoneNumber() != null) {
-            user.updateProfile(entity.getName(), entity.getPhoneNumber());
+        if (entity.getPhone() != null) {
+            user.updateProfile(entity.getName(), entity.getPhone());
         }
         
-        if (entity.isEmailVerified()) {
+        if (entity.getIsEmailVerified()) {
             user.verifyEmail();
-        }
-        
-        if (entity.isPhoneVerified()) {
-            user.verifyPhone();
         }
         
         if (entity.getLastLoginAt() != null) {

@@ -573,7 +573,7 @@
             "description": "지역, 가격대, 매물유형, 옵션 등 다중 필터 조건을 지원하는 검색 인터페이스를 구현한다.",
             "dependencies": [],
             "details": "지역별 계층 구조 필터(시/구/동), 가격 범위 슬라이더, 매물 유형 체크박스(원룸/투룸/오피스텔 등), 옵션 필터(주차/엘리베이터/반려동물 등), 필터 상태 저장 및 초기화 기능, 필터 조합에 따른 실시간 결과 카운트 표시",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -584,7 +584,7 @@
               "7.1"
             ],
             "details": "BooleanBuilder를 활용한 동적 조건 생성, 조인 최적화 전략, 서브쿼리 활용, N+1 문제 해결을 위한 fetch join 적용, 쿼리 성능 모니터링, 복잡한 필터 조합에 대한 쿼리 최적화",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -595,7 +595,7 @@
               "7.2"
             ],
             "details": "Cursor 기반 페이징 구현, 무한 스크롤 지원, 정렬 옵션(최신순/가격순/거리순/인기순), 페이징 성능 최적화, 검색 결과 총 개수 효율적 계산, 페이지 캐싱 전략",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -606,7 +606,7 @@
               "7.3"
             ],
             "details": "Debounce를 활용한 실시간 검색, Elasticsearch 또는 Redis를 활용한 자동완성, 검색어 하이라이팅, 인기 검색어 추천, 검색 결과 실시간 업데이트, 타이핑 성능 최적화",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -927,7 +927,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-02T00:14:10.683Z",
+      "updated": "2025-08-02T10:12:46.387Z",
       "description": "Tasks for master context"
     }
   }

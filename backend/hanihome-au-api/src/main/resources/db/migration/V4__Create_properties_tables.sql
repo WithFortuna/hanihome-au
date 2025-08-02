@@ -4,7 +4,7 @@
 
 -- Create properties table
 CREATE TABLE properties (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     description TEXT,
     address VARCHAR(500) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE properties (
     approved_at TIMESTAMP,
     approved_by BIGINT,
     created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    modified_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version BIGINT DEFAULT 0
 );
 
@@ -50,7 +50,7 @@ CREATE TABLE property_options (
 
 -- Create property_images table (redesigned as separate entity)
 CREATE TABLE property_images (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     property_id BIGINT NOT NULL,
     image_url VARCHAR(500) NOT NULL,
     thumbnail_url VARCHAR(500),
@@ -106,3 +106,18 @@ ALTER TABLE properties ADD CONSTRAINT chk_positive_values
 -- Ensure only one main image per property
 CREATE UNIQUE INDEX idx_unique_main_image ON property_images(property_id, is_main) 
     WHERE is_main = TRUE;
+
+-- Create trigger function for updating modified_date
+CREATE OR REPLACE FUNCTION update_modified_date()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.modified_date = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for properties table
+CREATE TRIGGER properties_update_modified_date
+    BEFORE UPDATE ON properties
+    FOR EACH ROW
+    EXECUTE FUNCTION update_modified_date();

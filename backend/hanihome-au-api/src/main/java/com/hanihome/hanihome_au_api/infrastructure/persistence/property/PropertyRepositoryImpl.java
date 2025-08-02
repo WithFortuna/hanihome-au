@@ -190,10 +190,18 @@ public class PropertyRepositoryImpl implements PropertyRepository {
             property.getSpecs().isHasElevator(),
             property.getRentPrice().getAmount(),
             property.getDepositAmount().getAmount(),
+            property.getMaintenanceFee() != null ? property.getMaintenanceFee().getAmount() : null,
             property.getRentPrice().getCurrency(),
             property.getAvailableFrom(),
             property.getCreatedAt(),
-            property.getUpdatedAt()
+            property.getUpdatedAt(),
+            property.getAgentId(),
+            property.getOptions(),
+            property.getImageUrls(),
+            property.getFurnished(),
+            property.getShortTermAvailable(),
+            property.getAdminNotes(),
+            property.getVersion()
         );
     }
 
@@ -226,6 +234,8 @@ public class PropertyRepositoryImpl implements PropertyRepository {
         
         Money rentPrice = Money.of(entity.getRentPrice(), entity.getCurrency());
         Money depositAmount = Money.of(entity.getDepositAmount(), entity.getCurrency());
+        Money maintenanceFee = entity.getMaintenanceFee() != null ? 
+            Money.of(entity.getMaintenanceFee(), entity.getCurrency()) : null;
         
         Property property = Property.create(
             propertyId,
@@ -237,12 +247,39 @@ public class PropertyRepositoryImpl implements PropertyRepository {
             address,
             specs,
             rentPrice,
-            depositAmount
+            depositAmount,
+            maintenanceFee
         );
+        
+        // Set additional fields
+        if (entity.getAgentId() != null) {
+            property.setAgentId(entity.getAgentId());
+        }
+        
+        if (entity.getOptions() != null) {
+            entity.getOptions().forEach(property::addOption);
+        }
+        
+        if (entity.getImageUrls() != null) {
+            entity.getImageUrls().forEach(property::addImageUrl);
+        }
+        
+        if (entity.getFurnished() != null || entity.getShortTermAvailable() != null) {
+            property.updateAmenities(
+                entity.isHasParking(),
+                entity.isHasPet(),
+                entity.getFurnished(),
+                entity.getShortTermAvailable()
+            );
+        }
+        
+        if (entity.getAdminNotes() != null) {
+            property.setAdminNotes(entity.getAdminNotes());
+        }
         
         // Set status if different from default
         PropertyStatus currentStatus = PropertyStatus.valueOf(entity.getStatus().name());
-        if (currentStatus != PropertyStatus.DRAFT) {
+        if (currentStatus != PropertyStatus.PENDING_APPROVAL) {
             property.changeStatus(currentStatus);
         }
         

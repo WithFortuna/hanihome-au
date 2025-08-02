@@ -75,23 +75,22 @@ public class User {
     @Column(name = "oauth_provider_id", nullable = false, length = 255)
     private String oauthProviderId;
 
-    @Column(name = "is_active", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(name = "is_email_verified", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
     private Boolean isEmailVerified = false;
 
-    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
     @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     // Relationships

@@ -463,7 +463,90 @@
           5
         ],
         "status": "in-progress",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "다단계 매물 등록 폼 컴포넌트 구현",
+            "description": "매물 기본 정보, 상세 정보, 옵션 선택이 포함된 단계별 폼 컴포넌트를 구현한다.",
+            "dependencies": [],
+            "details": "React Hook Form과 Yup을 활용한 폼 유효성 검사, 단계별 진행률 표시기, 임시 저장 기능, 반응형 디자인 적용. 매물 유형별 맞춤 폼 필드 표시.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "드래그앤드롭 이미지 업로드 시스템 구현",
+            "description": "다중 이미지 업로드, 미리보기, 업로드 진행률을 표시하는 드래그앤드롭 인터페이스를 구현한다.",
+            "dependencies": [],
+            "details": "react-dropzone 라이브러리 활용, 이미지 압축 및 리사이징, 업로드 진행률 표시, 지원 파일 형식 제한, 최대 용량 체크, S3 직접 업로드 구현.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "이미지 순서 관리 및 썸네일 설정 기능 구현",
+            "description": "업로드된 이미지의 순서 변경, 대표 이미지 설정, 삭제 기능을 구현한다.",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "react-beautiful-dnd를 활용한 드래그앤드롭 정렬, 썸네일 미리보기, 이미지 회전/자르기 기능, 이미지 메타데이터 관리, 순서 저장 API 연동.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "실시간 주소 검색 및 지도 연동 구현",
+            "description": "다음/카카오 주소 API를 활용한 주소 검색과 지도 표시 기능을 구현한다.",
+            "dependencies": [],
+            "details": "다음 우편번호 서비스 연동, 카카오맵 API 통합, 주소 자동완성, 위도/경도 좌표 저장, 근처 교통시설 정보 표시, 지도 마커 커스터마이징.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "매물 옵션 및 편의시설 인터페이스 구현",
+            "description": "매물의 다양한 옵션과 편의시설을 선택할 수 있는 체크박스 인터페이스를 구현한다.",
+            "dependencies": [],
+            "details": "카테고리별 옵션 분류, 아이콘 기반 시각적 표시, 선택된 옵션 요약 표시, 옵션별 가격 정보 입력, 커스텀 옵션 추가 기능, 필터링 가능한 구조.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "매물 관리 대시보드 구현",
+            "description": "등록된 매물의 현황을 한눈에 볼 수 있는 관리 대시보드를 구현한다.",
+            "dependencies": [
+              "6.1",
+              "6.3",
+              "6.5"
+            ],
+            "details": "매물 목록 테이블, 상태별 필터링, 검색 기능, 조회수/문의수 통계, 매물별 상세 관리 페이지 연결, 일괄 작업 기능, 페이지네이션.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "매물 수정 및 상태 관리 기능 구현",
+            "description": "등록된 매물의 정보 수정과 활성/비활성 상태 변경 기능을 구현한다.",
+            "dependencies": [
+              "6.6"
+            ],
+            "details": "매물 정보 수정 폼, 상태 토글 스위치, 수정 히스토리 관리, 변경사항 미리보기, 임시 저장 기능, 수정 권한 체크, 상태 변경 알림.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "매물 삭제 및 데이터 관리 기능 구현",
+            "description": "매물 삭제, 복구, 완전 삭제 기능과 관련 데이터 정리 작업을 구현한다.",
+            "dependencies": [
+              "6.6"
+            ],
+            "details": "소프트 삭제 구현, 삭제 확인 모달, 삭제된 매물 복구 기능, 관련 이미지 정리, 예약/문의 데이터 처리, 삭제 로그 관리, 일정 기간 후 완전 삭제.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 7,

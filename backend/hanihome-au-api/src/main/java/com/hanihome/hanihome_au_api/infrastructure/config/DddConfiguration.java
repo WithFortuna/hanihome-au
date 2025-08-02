@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
 public class DddConfiguration {
 
     @Bean
-    public PropertyDomainService propertyDomainService() {
-        return new PropertyDomainService();
+    public PropertyDomainService propertyDomainService(PropertyRepository propertyRepository) {
+        return new PropertyDomainService(propertyRepository);
     }
 
     @Bean
@@ -36,7 +36,7 @@ public class DddConfiguration {
     public PropertyApplicationService propertyApplicationService(
             PropertyRepository propertyRepository,
             PropertyDomainService propertyDomainService,
-            CreatePropertyUseCase createPropertyUseCase) {
-        return new PropertyApplicationService(propertyRepository, propertyDomainService, createPropertyUseCase);
+            CreatePropertyUseCase createPropertyUseCase, DomainEventPublisher domainEventPublisher) {
+        return new PropertyApplicationService(propertyRepository, propertyDomainService, createPropertyUseCase, domainEventPublisher);
     }
 }

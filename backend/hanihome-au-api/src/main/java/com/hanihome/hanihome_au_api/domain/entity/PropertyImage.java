@@ -26,20 +26,17 @@ public class PropertyImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "property_id", nullable = false)
     private Long propertyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "propertyId", insertable = false, updatable = false)
-    private Property property;
 
-    @Column(nullable = false, length = 500)
+    @Column(name = "image_url", nullable = false, length = 500)
     private String imageUrl;
 
     @Column(length = 500)
     private String thumbnailUrl;
 
-    @Column(nullable = false)
+    @Column(name = "image_order", nullable = false)
     @Builder.Default
     private Integer imageOrder = 0;
 

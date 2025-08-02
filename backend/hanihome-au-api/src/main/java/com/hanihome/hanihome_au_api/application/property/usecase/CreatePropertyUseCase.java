@@ -5,6 +5,8 @@ import com.hanihome.hanihome_au_api.application.property.dto.PropertyResponseDto
 import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.*;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Address;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Money;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;

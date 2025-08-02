@@ -104,23 +104,17 @@ handle_feature_development() {
 
 # Handle documentation workflow
 handle_documentation_work() {
-    log "Processing documentation workflow..."
+    log "Processing git workflow after documentation workflow... "
 
-    # Switch to document branch and commit
-    if switch_to_document_branch; then
-        commit_changes "docs: Update documentation" || {
-            log "Failed to commit documentation changes"
-            return 1
-        }
+    log "Delegating commit and PR to perform_git_automation.sh"
 
-        create_documentation_pr || {
-            log "Failed to create documentation PR"
-            return 1
-        }
-    else
-        log "Failed to switch to document branch"
+    if ! perform_git_automation "documentation"; then
+        log "Documentation 작업 후 git  automation via Claude failed"
         return 1
     fi
+
+    log "Documentation automation triggered successfully"
+
 }
 
 # Handle GitHub work (wait/no action)
@@ -170,36 +164,6 @@ EOF
 - 50% 이상 완료 시 자동으로 커밋 및 PR이 생성됩니다
 
 EOF
-}
-
-# Perform git automation for features
-perform_git_automation() {
-    local branch_type="$1"
-
-    log "Starting git automation for $branch_type"
-
-    # Commit changes
-    if commit_changes "feat: Complete feature implementation"; then
-        log "Successfully committed changes"
-
-        # Create PR
-        if create_feature_pr; then
-            log "Successfully created feature PR"
-
-            cat << EOF
-
-✅ 작업 완료 및 자동화 성공!
-- 변경사항이 커밋되었습니다
-- Pull Request가 생성되었습니다
-- 코드 리뷰를 요청하세요
-
-EOF
-        else
-            log "Failed to create feature PR"
-        fi
-    else
-        log "Failed to commit changes"
-    fi
 }
 
 # Error handling

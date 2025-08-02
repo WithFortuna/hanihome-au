@@ -1,10 +1,10 @@
 package com.hanihome.hanihome_au_api.service;
 
 import com.hanihome.hanihome_au_api.service.FileStorageService;
-import com.hanihome.hanihome_au_api.domain.entity.Property;
 import com.hanihome.hanihome_au_api.domain.entity.PropertyImage;
+import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
+import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyId;
 import com.hanihome.hanihome_au_api.repository.PropertyImageRepository;
-import com.hanihome.hanihome_au_api.repository.PropertyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -186,7 +186,7 @@ public class PropertyImageService {
     }
 
     private void validatePropertyExists(Long propertyId) {
-        if (!propertyRepository.existsById(propertyId)) {
+        if (!propertyRepository.findById(PropertyId.of(propertyId)).isPresent()) {
             throw new IllegalArgumentException("Property not found: " + propertyId);
         }
     }

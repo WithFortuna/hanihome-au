@@ -3,7 +3,7 @@
 -- Description: Create property status history table for tracking all status changes
 
 CREATE TABLE property_status_history (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     property_id BIGINT NOT NULL,
     previous_status VARCHAR(50) NOT NULL,
     new_status VARCHAR(50) NOT NULL,

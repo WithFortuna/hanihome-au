@@ -31,9 +31,6 @@ public class PropertyStatusHistory {
     @Column(nullable = false)
     private Long propertyId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "propertyId", insertable = false, updatable = false)
-    private Property property;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

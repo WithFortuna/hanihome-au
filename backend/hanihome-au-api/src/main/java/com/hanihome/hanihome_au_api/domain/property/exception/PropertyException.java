@@ -35,4 +35,16 @@ public class PropertyException extends DomainException {
             super(String.format("User %d is not authorized to access property %d", userId, propertyId));
         }
     }
+    
+    public static class PropertyStatusException extends PropertyException {
+        public PropertyStatusException(String message) {
+            super(message);
+        }
+    }
+    
+    public static class PropertyAccessDeniedException extends PropertyException {
+        public PropertyAccessDeniedException(Long propertyId) {
+            super("Access denied to property with ID: " + propertyId);
+        }
+    }
 }

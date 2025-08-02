@@ -3,6 +3,8 @@ package com.hanihome.hanihome_au_api.infrastructure.persistence.property;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "properties")
@@ -60,6 +62,9 @@ public class PropertyJpaEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal depositAmount;
     
+    @Column(precision = 19, scale = 2)
+    private BigDecimal maintenanceFee;
+    
     @Column(nullable = false)
     private String currency;
     
@@ -70,6 +75,27 @@ public class PropertyJpaEntity {
     
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+    
+    private Long agentId;
+    
+    @ElementCollection
+    @CollectionTable(name = "property_options", joinColumns = @JoinColumn(name = "property_id"))
+    @Column(name = "option_name")
+    private List<String> options = new ArrayList<>();
+    
+    @ElementCollection
+    @CollectionTable(name = "property_images", joinColumns = @JoinColumn(name = "property_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls = new ArrayList<>();
+    
+    private Boolean furnished;
+    private Boolean shortTermAvailable;
+    
+    @Column(columnDefinition = "TEXT")
+    private String adminNotes;
+    
+    @Version
+    private Long version;
 
     protected PropertyJpaEntity() {}
 
@@ -91,8 +117,11 @@ public class PropertyJpaEntity {
                            String street, String city, String state, String country, String postalCode,
                            Double latitude, Double longitude, int bedrooms, int bathrooms, Double floorArea,
                            Integer floor, Integer totalFloors, boolean hasParking, boolean hasPet,
-                           boolean hasElevator, BigDecimal rentPrice, BigDecimal depositAmount, String currency,
-                           LocalDateTime availableFrom, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                           boolean hasElevator, BigDecimal rentPrice, BigDecimal depositAmount, 
+                           BigDecimal maintenanceFee, String currency, LocalDateTime availableFrom, 
+                           LocalDateTime createdAt, LocalDateTime updatedAt, Long agentId, 
+                           List<String> options, List<String> imageUrls, Boolean furnished, 
+                           Boolean shortTermAvailable, String adminNotes, Long version) {
         this.id = id;
         this.ownerId = ownerId;
         this.title = title;
@@ -117,10 +146,18 @@ public class PropertyJpaEntity {
         this.hasElevator = hasElevator;
         this.rentPrice = rentPrice;
         this.depositAmount = depositAmount;
+        this.maintenanceFee = maintenanceFee;
         this.currency = currency;
         this.availableFrom = availableFrom;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.agentId = agentId;
+        this.options = options != null ? new ArrayList<>(options) : new ArrayList<>();
+        this.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
+        this.furnished = furnished;
+        this.shortTermAvailable = shortTermAvailable;
+        this.adminNotes = adminNotes;
+        this.version = version;
     }
 
     // Getters and Setters
@@ -207,4 +244,28 @@ public class PropertyJpaEntity {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public BigDecimal getMaintenanceFee() { return maintenanceFee; }
+    public void setMaintenanceFee(BigDecimal maintenanceFee) { this.maintenanceFee = maintenanceFee; }
+    
+    public Long getAgentId() { return agentId; }
+    public void setAgentId(Long agentId) { this.agentId = agentId; }
+    
+    public List<String> getOptions() { return options; }
+    public void setOptions(List<String> options) { this.options = options; }
+    
+    public List<String> getImageUrls() { return imageUrls; }
+    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
+    
+    public Boolean getFurnished() { return furnished; }
+    public void setFurnished(Boolean furnished) { this.furnished = furnished; }
+    
+    public Boolean getShortTermAvailable() { return shortTermAvailable; }
+    public void setShortTermAvailable(Boolean shortTermAvailable) { this.shortTermAvailable = shortTermAvailable; }
+    
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+    
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

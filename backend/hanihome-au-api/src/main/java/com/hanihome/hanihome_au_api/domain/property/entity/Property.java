@@ -1,6 +1,9 @@
 package com.hanihome.hanihome_au_api.domain.property.entity;
 
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
 import com.hanihome.hanihome_au_api.domain.property.valueobject.*;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyStatus;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyCreatedEvent;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyStatusChangedEvent;
 import com.hanihome.hanihome_au_api.domain.property.event.PropertyPriceChangedEvent;
@@ -30,43 +33,67 @@ public class Property extends AggregateRoot<PropertyId> {
     private PropertySpecs specs;
     private Money rentPrice;
     private Money depositAmount;
+    private Money maintenanceFee;
     private LocalDateTime availableFrom;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private UserId approvedBy;
     private LocalDateTime approvedAt;
+    private Long agentId;
+    private List<String> options;
+    private List<String> imageUrls;
+    private Boolean parkingAvailable;
+    private Boolean petAllowed;
+    private Boolean furnished;
+    private Boolean shortTermAvailable;
+    private String adminNotes;
+    private Long version;
     
-    protected Property() {}
+    protected Property() {
+        this.options = new ArrayList<>();
+        this.imageUrls = new ArrayList<>();
+    }
 
     private Property(PropertyId id, UserId ownerId, String title, String description,
                    PropertyType type, RentalType rentalType, Address address,
-                   PropertySpecs specs, Money rentPrice, Money depositAmount) {
+                   PropertySpecs specs, Money rentPrice, Money depositAmount, Money maintenanceFee) {
         this.id = Objects.requireNonNull(id, "Property ID cannot be null");
         this.ownerId = Objects.requireNonNull(ownerId, "Owner ID cannot be null");
         this.title = validateTitle(title);
         this.description = description;
         this.type = Objects.requireNonNull(type, "Property type cannot be null");
         this.rentalType = Objects.requireNonNull(rentalType, "Rental type cannot be null");
-        this.status = PropertyStatus.DRAFT;
+        this.status = PropertyStatus.PENDING_APPROVAL;
         this.address = Objects.requireNonNull(address, "Address cannot be null");
         this.specs = Objects.requireNonNull(specs, "Property specs cannot be null");
         this.rentPrice = Objects.requireNonNull(rentPrice, "Rent price cannot be null");
         this.depositAmount = Objects.requireNonNull(depositAmount, "Deposit amount cannot be null");
+        this.maintenanceFee = maintenanceFee;
         
         validatePricing(rentPrice, depositAmount);
         
         this.availableFrom = LocalDateTime.now();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.options = new ArrayList<>();
+        this.imageUrls = new ArrayList<>();
+        this.version = 0L;
         
         addDomainEvent(new PropertyCreatedEvent(id, ownerId, title, type));
     }
 
     public static Property create(PropertyId id, UserId ownerId, String title, String description,
                                 PropertyType type, RentalType rentalType, Address address,
-                                PropertySpecs specs, Money rentPrice, Money depositAmount) {
+                                PropertySpecs specs, Money rentPrice, Money depositAmount, Money maintenanceFee) {
         return new Property(id, ownerId, title, description, type, rentalType, 
-                          address, specs, rentPrice, depositAmount);
+                          address, specs, rentPrice, depositAmount, maintenanceFee);
+    }
+    
+    public static Property create(PropertyId id, UserId ownerId, String title, String description,
+                                PropertyType type, RentalType rentalType, Address address,
+                                PropertySpecs specs, Money rentPrice, Money depositAmount) {
+        return create(id, ownerId, title, description, type, rentalType, 
+                     address, specs, rentPrice, depositAmount, null);
     }
 
     /**
@@ -190,10 +217,61 @@ public class Property extends AggregateRoot<PropertyId> {
     }
 
     /**
+     * Property feature management
+     */
+    public void addOption(String option) {
+        if (option != null && !option.trim().isEmpty() && !this.options.contains(option)) {
+            this.options.add(option);
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void removeOption(String option) {
+        if (this.options.remove(option)) {
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void addImageUrl(String imageUrl) {
+        if (imageUrl != null && !imageUrl.trim().isEmpty() && !this.imageUrls.contains(imageUrl)) {
+            this.imageUrls.add(imageUrl);
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void removeImageUrl(String imageUrl) {
+        if (this.imageUrls.remove(imageUrl)) {
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    public void setAgentId(Long agentId) {
+        this.agentId = agentId;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateAmenities(Boolean parkingAvailable, Boolean petAllowed, Boolean furnished, Boolean shortTermAvailable) {
+        this.parkingAvailable = parkingAvailable;
+        this.petAllowed = petAllowed;
+        this.furnished = furnished;
+        this.shortTermAvailable = shortTermAvailable;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void setAdminNotes(String adminNotes) {
+        this.adminNotes = adminNotes;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
      * Calculates total monthly cost
      */
     public Money getTotalMonthlyCost() {
-        return rentPrice; // Could include maintenance fees in future
+        Money total = rentPrice;
+        if (maintenanceFee != null) {
+            total = total.add(maintenanceFee);
+        }
+        return total;
     }
 
     /**
@@ -232,7 +310,7 @@ public class Property extends AggregateRoot<PropertyId> {
     }
 
     private void ensureCanBeModified() {
-        if (status == PropertyStatus.RENTED || status == PropertyStatus.DELETED) {
+        if (!status.canBeModified()) {
             throw new IllegalStateException("Cannot modify property in status: " + status);
         }
     }
@@ -278,7 +356,19 @@ public class Property extends AggregateRoot<PropertyId> {
     public PropertySpecs getSpecs() { return specs; }
     public Money getRentPrice() { return rentPrice; }
     public Money getDepositAmount() { return depositAmount; }
+    public Money getMaintenanceFee() { return maintenanceFee; }
     public LocalDateTime getAvailableFrom() { return availableFrom; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public UserId getApprovedBy() { return approvedBy; }
+    public LocalDateTime getApprovedAt() { return approvedAt; }
+    public Long getAgentId() { return agentId; }
+    public List<String> getOptions() { return new ArrayList<>(options); }
+    public List<String> getImageUrls() { return new ArrayList<>(imageUrls); }
+    public Boolean getParkingAvailable() { return parkingAvailable; }
+    public Boolean getPetAllowed() { return petAllowed; }
+    public Boolean getFurnished() { return furnished; }
+    public Boolean getShortTermAvailable() { return shortTermAvailable; }
+    public String getAdminNotes() { return adminNotes; }
+    public Long getVersion() { return version; }
 }

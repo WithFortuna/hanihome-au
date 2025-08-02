@@ -2,6 +2,9 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
+	id "org.sonarqube" version "6.2.0.5505"
+	id 'org.owasp.dependencycheck' version '10.0.4'
 }
 
 group = 'com.hanihome'
@@ -64,13 +67,99 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+// JaCoCo configuration
+jacoco {
+	toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+		csv.required = false
+	}
+	finalizedBy jacocoTestCoverageVerification
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 0.50
+			}
+		}
+	}
+}
+
+// SonarQube configuration
+sonar {
+	properties {
+
+		property "sonar.projectKey", "WithFortuna_hanihome-au"
+		property "sonar.organization", "withfortuna"
+		property "sonar.host.url", "https://sonarcloud.io"
+
+		property "sonar.projectName", "HaniHome Australia API"
+		property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
+		property "sonar.java.coveragePlugin", "jacoco"
+		property "sonar.core.codeCoveragePlugin", "jacoco"
+		property "sonar.language", "java"
+		property "sonar.sources", "src/main/java"
+		property "sonar.tests", "src/test/java"
+		property "sonar.java.binaries", "build/classes/java/main"
+		property "sonar.java.test.binaries", "build/classes/java/test"
+	}
+}
+
+// OWASP Dependency Check configuration
+dependencyCheck {
+	format = 'HTML'
+	outputDirectory = 'build/reports'
+	suppressionFile = 'dependency-check-suppressions.xml'
+	skipConfigurations = ['compileClasspath', 'testCompileClasspath']
 }
 
 // QueryDSL configuration
 def querydslDir = "src/main/generated"
 
+// Integration test and QueryDSL configuration
 sourceSets {
 	main.java.srcDirs += [querydslDir]
+	
+	integrationTest {
+		java {
+			compileClasspath += sourceSets.main.output
+			runtimeClasspath += sourceSets.main.output
+		}
+	}
+}
+
+configurations {
+	integrationTestImplementation.extendsFrom implementation
+	integrationTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+dependencies {
+	// Integration test dependencies
+	integrationTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+	integrationTestImplementation 'org.testcontainers:junit-jupiter'
+	integrationTestImplementation 'org.testcontainers:postgresql'
+	integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+task integrationTest(type: Test) {
+	description = 'Runs integration tests.'
+	group = 'verification'
+	
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	shouldRunAfter test
+	
+	useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile) {

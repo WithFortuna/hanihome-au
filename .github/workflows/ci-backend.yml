@@ -80,7 +80,9 @@ jobs:
 
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: always()
+        if: always() && env.CODECOV_TOKEN != null
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           file: ${{ env.WORKING_DIRECTORY }}/build/reports/jacoco/test/jacocoTestReport.xml
           flags: backend
@@ -170,7 +172,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./gradlew build sonar --info
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            ./gradlew build sonar --info
+          else
+            echo "⚠️  SONAR_TOKEN not set, skipping SonarCloud analysis"
+            ./gradlew build --info
+          fi
 
   security-scan:
     name: Security Scan
@@ -204,6 +212,7 @@ jobs:
 
       - name: Run Snyk Security Check
         uses: snyk/actions/gradle@master
+        if: env.SNYK_TOKEN != null
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

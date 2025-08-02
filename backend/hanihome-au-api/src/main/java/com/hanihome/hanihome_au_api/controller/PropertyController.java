@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +26,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Map;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.RentalType;
 
 @Slf4j
 @RestController
@@ -46,11 +48,11 @@ public class PropertyController {
         description = "Creates a new property listing with the provided details. Property will be in PENDING_APPROVAL status."
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Property created successfully",
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Property created successfully",
             content = @Content(schema = @Schema(implementation = PropertyDetailResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid request data"),
-        @ApiResponse(responseCode = "401", description = "Unauthorized"),
-        @ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request data"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - insufficient permissions")
     })
     public ResponseEntity<com.hanihome.hanihome_au_api.dto.response.ApiResponse<PropertyDetailResponse>> createProperty(
             @Valid @RequestBody PropertyCreateRequest request) {

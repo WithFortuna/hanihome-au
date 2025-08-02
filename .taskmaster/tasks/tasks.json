@@ -372,7 +372,7 @@
         "dependencies": [
           4
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -424,7 +424,7 @@
               "5.4"
             ],
             "details": "사용자 현재 위치 획득 (Geolocation API), 거리 범위 선택 UI 컴포넌트, 거리 기반 매물 정렬 알고리즘, 실시간 필터링 결과 업데이트, 지도 뷰포트 기반 동적 로딩, 거리 표시 형식화 (km/m 단위)",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -435,7 +435,7 @@
               "5.3"
             ],
             "details": "모바일 화면 크기별 지도 레이아웃 조정, 터치 제스처 (핀치 줌, 드래그) 최적화, 모바일 전용 컨트롤 버튼 디자인, 지도 로딩 속도 최적화 (타일 압축), 오프라인 지도 캐싱 검토, 배터리 사용량 최적화",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -447,7 +447,7 @@
               "5.6"
             ],
             "details": "지도 타일 지연 로딩 구현, 뷰포트 기반 마커 동적 로딩, 메모리 누수 방지 (이벤트 리스너 정리), 지도 상태 관리 최적화, 로딩 스피너 및 스켈레톤 UI, 에러 핸들링 및 재시도 로직, 지도 API 호출 제한 관리",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -462,7 +462,7 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -470,7 +470,7 @@
             "description": "기본 정보, 세부 정보, 옵션 선택, 이미지 업로드 단계로 구성된 다단계 폼을 구현합니다.",
             "dependencies": [],
             "details": "React Hook Form을 사용하여 단계별 폼 상태 관리, 진행 표시기, 단계간 데이터 유지, 유효성 검사 구현. 각 단계별 저장 기능과 뒤로가기/다음 버튼 처리.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -481,7 +481,7 @@
               "6.1"
             ],
             "details": "react-dropzone 라이브러리 활용, 이미지 크기 제한 및 포맷 검증, 업로드 진행률 표시, S3 직접 업로드 연동, 이미지 압축 및 최적화 기능 포함.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -492,7 +492,7 @@
               "6.1"
             ],
             "details": "옵션 카테고리 분류 (보안시설, 편의시설, 주변환경 등), 검색 가능한 옵션 리스트, 커스텀 옵션 추가 기능, 선택된 옵션들의 시각적 표시 및 관리.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -503,7 +503,7 @@
               "6.1"
             ],
             "details": "카카오 주소 검색 API 연동, 자동완성 주소 제안, 선택된 주소의 지도 표시, 마커 드래그로 정확한 위치 조정, 좌표 정보 저장 및 관리.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -516,7 +516,7 @@
               "6.4"
             ],
             "details": "매물 목록 테이블, 필터링 및 정렬 기능, 매물 상태별 분류, 조회수/문의수 통계, 페이지네이션, 매물 미리보기 및 빠른 편집 기능.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -927,7 +927,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-01T04:57:25.954Z",
+      "updated": "2025-08-02T00:14:10.683Z",
       "description": "Tasks for master context"
     }
   }

@@ -5,7 +5,7 @@ import com.hanihome.hanihome_au_api.dto.request.GeographicSearchRequest;
 import com.hanihome.hanihome_au_api.service.GeographicSearchService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureTestMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for Geographic Search functionality
  */
 @SpringBootTest
-@AutoConfigureTestMockMvc
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 public class GeographicSearchIntegrationTest {
@@ -72,7 +72,7 @@ public class GeographicSearchIntegrationTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpected(jsonPath("$.data").exists())
+                .andExpect(jsonPath("$.data").exists())
                 .andExpect(jsonPath("$.data.content").isArray());
     }
 
@@ -109,8 +109,8 @@ public class GeographicSearchIntegrationTest {
                 .param("lng2", "144.9889"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpected(jsonPath("$.data.distanceKm").exists())
-                .andExpected(jsonPath("$.data.bearing").exists());
+                .andExpect(jsonPath("$.data.distanceKm").exists())
+                .andExpect(jsonPath("$.data.bearing").exists());
     }
 
     @Test

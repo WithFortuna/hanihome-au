@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { loadGoogleMaps, isGoogleMapsLoaded } from '@/lib/maps/loader';
-import { MAP_OPTIONS } from '@/lib/maps/config';
+import { MAP_OPTIONS, MOBILE_MAP_OPTIONS, DESKTOP_MAP_OPTIONS } from '@/lib/maps/config';
 import { MapPosition, MapBounds, MapEventHandlers } from '@/lib/maps/types';
 
 interface UseGoogleMapsOptions {
@@ -13,6 +13,7 @@ interface UseGoogleMapsOptions {
   options?: Partial<google.maps.MapOptions>;
   onLoad?: (map: google.maps.Map) => void;
   onError?: (error: Error) => void;
+  isMobile?: boolean;
 }
 
 interface UseGoogleMapsReturn {
@@ -38,6 +39,7 @@ export function useGoogleMaps(
     options: mapOptions,
     onLoad,
     onError,
+    isMobile = false,
   } = options;
 
   const initializeMap = useCallback(async () => {
@@ -52,9 +54,11 @@ export function useGoogleMaps(
         await loadGoogleMaps();
       }
 
-      // Create map instance
+      // Create map instance with device-specific options
+      const deviceSpecificOptions = isMobile ? MOBILE_MAP_OPTIONS : DESKTOP_MAP_OPTIONS;
       const mapInstance = new google.maps.Map(mapRef.current, {
         ...MAP_OPTIONS,
+        ...deviceSpecificOptions,
         ...mapOptions,
         center,
         zoom,

@@ -20,4 +20,8 @@ public interface PropertyRepositoryCustom {
     List<Object[]> getPriceRangeStatistics();
     
     List<Property> findPropertiesWithExpiringSoonAvailability(int daysAhead);
+    
+    long countPropertiesWithCriteria(PropertySearchCriteria criteria);
+    
+    List<Property> findNearbyProperties(java.math.BigDecimal latitude, java.math.BigDecimal longitude, Double radiusKm, int limit);
 }

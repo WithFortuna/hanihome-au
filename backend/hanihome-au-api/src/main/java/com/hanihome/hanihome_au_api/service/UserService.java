@@ -59,7 +59,7 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
 
-        user.updateProfile(name, phone, bio);
+        user.updateProfile(name, phone, bio, null);
         return userRepository.save(user);
     }
 

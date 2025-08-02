@@ -16,7 +16,7 @@ osascript <<EOF
        # 디렉토리 이동 명령 실행
        write text "cd ${WORK_DIR}"
        # Claude 실행 명령 실행
-       write text "claude /tm:workflows:command-pipeline  지금까지 진행한 작업 상황을 파악해서 다음 task의 subtask를 절반개수 만큼 수행해. 그 후에는 /clear해. /auto-document"
+       write text "claude \" /tm:workflows:command-pipeline  지금까지 진행한 작업 상황을 파악해서 다음 task의 subtask를 절반개수 만큼 수행해. 그 후에는 /clear해. /auto-document \" "
      end tell
    end tell
  end tell

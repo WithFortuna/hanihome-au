@@ -1,5 +1,8 @@
 package com.hanihome.hanihome_au_api.exception;
 
+import com.hanihome.hanihome_au_api.domain.property.exception.PropertyException;
+import com.hanihome.hanihome_au_api.domain.shared.exception.DomainException;
+import com.hanihome.hanihome_au_api.domain.user.exception.UserException;
 import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
 import com.hanihome.hanihome_au_api.dto.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,62 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserException.UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserNotFound(UserException.UserNotFoundException ex) {
+        log.warn("User not found: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("USER_NOT_FOUND")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("User not found", error));
+    }
+
+    @ExceptionHandler(UserException.UserAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserAlreadyExists(UserException.UserAlreadyExistsException ex) {
+        log.warn("User already exists: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("USER_ALREADY_EXISTS")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("User already exists", error));
+    }
+
+    @ExceptionHandler(UserException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUserException(UserException ex) {
+        log.warn("User domain exception: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("USER_ERROR")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("User error", error));
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleDomainException(DomainException ex) {
+        log.warn("Domain exception: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("DOMAIN_ERROR")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Domain error", error));
+    }
+
     @ExceptionHandler(PropertyException.PropertyNotFoundException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handlePropertyNotFound(PropertyException.PropertyNotFoundException ex) {
         log.warn("Property not found: {}", ex.getMessage());
@@ -39,6 +98,20 @@ public class GlobalExceptionHandler {
                 
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error("Property not found", error));
+    }
+
+    @ExceptionHandler(PropertyException.UnauthorizedPropertyAccessException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleUnauthorizedPropertyAccess(PropertyException.UnauthorizedPropertyAccessException ex) {
+        log.warn("Unauthorized property access: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("UNAUTHORIZED_PROPERTY_ACCESS")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error("Unauthorized access", error));
     }
 
     @ExceptionHandler(PropertyException.PropertyAccessDeniedException.class)
@@ -55,6 +128,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Access denied", error));
     }
 
+    @ExceptionHandler(PropertyException.InvalidPropertyStatusTransitionException.class)
+    public ResponseEntity<ApiResponse<ErrorResponse>> handleInvalidPropertyStatusTransition(PropertyException.InvalidPropertyStatusTransitionException ex) {
+        log.warn("Invalid property status transition: {}", ex.getMessage());
+        
+        ErrorResponse error = ErrorResponse.builder()
+                .code("INVALID_STATUS_TRANSITION")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+                
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid status transition", error));
+    }
+
     @ExceptionHandler(PropertyException.PropertyStatusException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handlePropertyStatusException(PropertyException.PropertyStatusException ex) {
         log.warn("Property status error: {}", ex.getMessage());
@@ -69,19 +156,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Property status error", error));
     }
 
-    @ExceptionHandler(PropertyException.PropertyImageException.class)
-    public ResponseEntity<ApiResponse<ErrorResponse>> handlePropertyImageException(PropertyException.PropertyImageException ex) {
-        log.error("Property image error: {}", ex.getMessage(), ex);
-        
-        ErrorResponse error = ErrorResponse.builder()
-                .code("PROPERTY_IMAGE_ERROR")
-                .message(ex.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-                
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Image processing error", error));
-    }
 
     @ExceptionHandler(PropertyException.PropertyValidationException.class)
     public ResponseEntity<ApiResponse<ErrorResponse>> handlePropertyValidationException(PropertyException.PropertyValidationException ex) {

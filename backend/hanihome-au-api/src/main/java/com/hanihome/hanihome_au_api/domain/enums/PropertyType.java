@@ -7,7 +7,10 @@ public enum PropertyType {
     TWO_ROOM("투룸"),
     THREE_ROOM("쓰리룸"),
     OFFICETEL("오피스텔"),
-    HOUSE("단독주택");
+    HOUSE("단독주택"),
+    TOWNHOUSE("타운하우스"),
+    CONDO("콘도"),
+    ROOM("룸");
 
     private final String displayName;
 

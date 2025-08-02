@@ -1,7 +1,7 @@
 package com.hanihome.hanihome_au_api.domain.property.event;
 
 import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyId;
-import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyType;
+import com.hanihome.hanihome_au_api.domain.enums.PropertyType;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
 
 import java.time.LocalDateTime;

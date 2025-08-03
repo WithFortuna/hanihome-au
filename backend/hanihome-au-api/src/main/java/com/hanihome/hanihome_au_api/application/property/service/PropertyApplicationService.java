@@ -182,6 +182,38 @@ public class PropertyApplicationService {
     }
 
     /**
+     * Convert JPA entity to response DTO (for search service)
+     */
+    public PropertyResponseDto convertToDto(com.hanihome.hanihome_au_api.infrastructure.persistence.property.PropertyJpaEntity entity) {
+        return new PropertyResponseDto(
+            entity.getId(),
+            entity.getLandlordId(),
+            entity.getTitle(),
+            entity.getDescription(),
+            entity.getPropertyType().name(),
+            entity.getRentalType().name(),
+            entity.getStatus().name(),
+            entity.getAddress(),
+            entity.getLatitude() != null ? entity.getLatitude().doubleValue() : null,
+            entity.getLongitude() != null ? entity.getLongitude().doubleValue() : null,
+            entity.getRooms() != null ? entity.getRooms() : 0,
+            entity.getBathrooms() != null ? entity.getBathrooms() : 0,
+            entity.getArea() != null ? entity.getArea().doubleValue() : null,
+            entity.getFloor(),
+            entity.getTotalFloors(),
+            Boolean.TRUE.equals(entity.getParkingAvailable()),
+            Boolean.TRUE.equals(entity.getPetAllowed()),
+            false, // hasElevator - not in JPA entity, using default
+            entity.getMonthlyRent(),
+            entity.getDeposit(),
+            "AUD", // Default currency - should be configurable
+            entity.getAvailableDate() != null ? entity.getAvailableDate().atStartOfDay() : null,
+            entity.getCreatedDate(),
+            entity.getModifiedDate()
+        );
+    }
+
+    /**
      * Publishes domain events from aggregate
      */
     private void publishDomainEvents(Property property) {

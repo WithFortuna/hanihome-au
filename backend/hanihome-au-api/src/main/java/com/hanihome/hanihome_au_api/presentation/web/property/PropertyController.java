@@ -3,8 +3,14 @@ package com.hanihome.hanihome_au_api.presentation.web.property;
 import com.hanihome.hanihome_au_api.application.property.dto.CreatePropertyCommand;
 import com.hanihome.hanihome_au_api.application.property.dto.PropertyResponseDto;
 import com.hanihome.hanihome_au_api.application.property.service.PropertyApplicationService;
+import com.hanihome.hanihome_au_api.application.property.service.PropertySearchService;
+import com.hanihome.hanihome_au_api.application.property.service.PropertyAutocompleteService;
 import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
 import com.hanihome.hanihome_au_api.presentation.dto.CreatePropertyRequest;
+import com.hanihome.hanihome_au_api.presentation.dto.PropertySearchRequest;
+import com.hanihome.hanihome_au_api.presentation.dto.PropertySearchResponse;
+import com.hanihome.hanihome_au_api.presentation.dto.AutocompleteRequest;
+import com.hanihome.hanihome_au_api.presentation.dto.AutocompleteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,6 +43,8 @@ import java.util.Map;
 public class PropertyController {
     
     private final PropertyApplicationService propertyApplicationService;
+    private final PropertySearchService propertySearchService;
+    private final PropertyAutocompleteService propertyAutocompleteService;
 
     @PostMapping
     @PreAuthorize("@securityExpressionHandler.hasPermission('property:create')")
@@ -210,6 +218,59 @@ public class PropertyController {
         }
     }
 
+    @PostMapping("/search")
+    @Operation(
+        summary = "Advanced property search",
+        description = "Search properties with multiple filter criteria including location, price, type, and amenities"
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Search completed successfully",
+            content = @Content(schema = @Schema(implementation = PropertySearchResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid search criteria")
+    })
+    public ResponseEntity<ApiResponse<PropertySearchResponse>> searchProperties(
+            @Valid @RequestBody PropertySearchRequest request) {
+        try {
+            log.info("Searching properties with criteria: {}", request);
+            PropertySearchResponse response = propertySearchService.searchProperties(request);
+            return ResponseEntity.ok(ApiResponse.success("Search completed successfully", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error during property search", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error during search"));
+        }
+    }
+
+    @GetMapping("/autocomplete")
+    @Operation(
+        summary = "Get autocomplete suggestions",
+        description = "Provides real-time autocomplete suggestions for property search"
+    )
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Autocomplete suggestions retrieved successfully",
+            content = @Content(schema = @Schema(implementation = AutocompleteResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid autocomplete request")
+    })
+    public ResponseEntity<ApiResponse<AutocompleteResponse>> getAutocompleteSuggestions(
+            @Parameter(description = "Search query") @RequestParam String query,
+            @Parameter(description = "Suggestion type") @RequestParam(defaultValue = "all") String type,
+            @Parameter(description = "Maximum suggestions") @RequestParam(defaultValue = "10") Integer limit) {
+        try {
+            AutocompleteRequest request = new AutocompleteRequest(query, type, limit);
+            AutocompleteResponse response = propertyAutocompleteService.getAutocompleteSuggestions(request);
+            return ResponseEntity.ok(ApiResponse.success("Autocomplete suggestions retrieved successfully", response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error during autocomplete", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Internal server error during autocomplete"));
+        }
+    }
 
     private Long extractUserIdFromAuthentication(Authentication authentication) {
         return 1L;

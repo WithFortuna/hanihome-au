@@ -1,8 +1,7 @@
 package com.hanihome.hanihome_au_api.security;
 
-import com.hanihome.hanihome_au_api.domain.entity.User;
-import com.hanihome.hanihome_au_api.domain.enums.Permission;
-import com.hanihome.hanihome_au_api.domain.enums.UserRole;
+import com.hanihome.hanihome_au_api.domain.user.entity.User;
+import com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole;
 import com.hanihome.hanihome_au_api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,9 +33,7 @@ public class SecurityExpressionHandler {
             }
             
             User user = userOpt.get();
-            Permission requiredPermission = Permission.fromString(permission);
-            
-            return user.getRole().hasPermission(requiredPermission);
+            return user.hasPermission(permission);
         } catch (Exception e) {
             log.error("Error checking permission {}: {}", permission, e.getMessage());
             return false;
@@ -59,8 +56,7 @@ public class SecurityExpressionHandler {
             
             User user = userOpt.get();
             
-            return user.getRole().name().equals(role) || 
-                   user.getRole().getAuthority().equals("ROLE_" + role);
+            return user.getRole().name().equals(role);
         } catch (Exception e) {
             log.error("Error checking role {}: {}", role, e.getMessage());
             return false;
@@ -114,20 +110,7 @@ public class SecurityExpressionHandler {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
-
-            // Admin and Agent can manage all properties
-            if (role == UserRole.ADMIN || role == UserRole.AGENT) {
-                return true;
-            }
-
-            // Landlord can manage their own properties
-            if (role == UserRole.LANDLORD) {
-                // TODO: Check if user owns this property
-                return true; // Placeholder - should check property ownership
-            }
-
-            return false;
+            return user.canManageProperty(); // Use domain logic
         } catch (Exception e) {
             log.error("Error checking property management permission: {}", e.getMessage());
             return false;
@@ -151,7 +134,7 @@ public class SecurityExpressionHandler {
             User user = userOpt.get();
             
             // All authenticated users can view properties (basic read access)
-            return user.getRole().hasPermission(Permission.PROPERTY_READ);
+            return true; // All authenticated users can view properties
         } catch (Exception e) {
             log.error("Error checking property view permission: {}", e.getMessage());
             return false;
@@ -181,7 +164,7 @@ public class SecurityExpressionHandler {
             }
 
             // Users can manage themselves
-            if (userId.equals(targetUserId)) {
+            if (user.getId().getValue().equals(targetUserId)) {
                 return true;
             }
 

@@ -1,98 +1,119 @@
 package com.hanihome.hanihome_au_api.infrastructure.persistence.property;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.ArrayList;
-
+import java.time.LocalDate;
+@Getter @Setter
 @Entity
 @Table(name = "properties")
 public class PropertyJpaEntity {
     
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
-    private Long ownerId;
-    
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String title;
     
     @Column(columnDefinition = "TEXT")
     private String description;
     
+    @Column(nullable = false, length = 500)
+    private String address;
+    
+    @Column(name = "detail_address", length = 100)
+    private String detailAddress;
+    
+    @Column(name = "zip_code", length = 10)
+    private String zipCode;
+    
+    @Column(length = 50)
+    private String city;
+    
+    @Column(length = 50)
+    private String district;
+    
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "property_type", nullable = false, length = 50)
     private PropertyTypeEnum propertyType;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "rental_type", nullable = false, length = 50)
     private RentalTypeEnum rentalType;
     
+    @Column(precision = 12, scale = 0)
+    private BigDecimal deposit;
+    
+    @Column(name = "monthly_rent", precision = 10, scale = 0)
+    private BigDecimal monthlyRent;
+    
+    @Column(name = "maintenance_fee", precision = 12, scale = 0)
+    private BigDecimal maintenanceFee;
+
+    @Column(name = "rent_price", precision = 10, scale = 0)
+    private BigDecimal rentPrice;
+
+    @Column(precision = 8, scale = 2)
+    private BigDecimal area;
+
+    private Double floorArea;
+    
+    private Integer rooms;
+    private Integer bathrooms;
+    private Integer floor;
+    private Integer bedrooms;
+    
+    @Column(name = "total_floors")
+    private Integer totalFloors;
+    
+    @Column(name = "available_date")
+    private LocalDate availableDate;
+    
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private PropertyStatusEnum status;
     
-    // Address fields
-    private String street;
-    @Column(nullable = false)
-    private String city;
-    private String state;
-    @Column(nullable = false)
-    private String country;
-    private String postalCode;
-    private Double latitude;
-    private Double longitude;
+    @Column(name = "landlord_id", nullable = false)
+    private Long landlordId;
     
-    // Property specs
-    private int bedrooms;
-    private int bathrooms;
-    private Double floorArea;
-    private Integer floor;
-    private Integer totalFloors;
-    private boolean hasParking = false;
-    private boolean hasPet = false;
-    private boolean hasElevator = false;
-    
-    // Pricing
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal rentPrice;
-    
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal depositAmount;
-    
-    @Column(precision = 19, scale = 2)
-    private BigDecimal maintenanceFee;
-    
-    @Column(nullable = false)
-    private String currency;
-    
-    private LocalDateTime availableFrom;
-    
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-    
-    @Column(nullable = false)
-    private LocalDateTime updatedAt;
-    
+    @Column(name = "agent_id")
     private Long agentId;
     
-    @ElementCollection
-    @CollectionTable(name = "property_options", joinColumns = @JoinColumn(name = "property_id"))
-    @Column(name = "option_name")
-    private List<String> options = new ArrayList<>();
+    @Column(precision = 10, scale = 7)
+    private BigDecimal latitude;
     
-    @ElementCollection
-    @CollectionTable(name = "property_images", joinColumns = @JoinColumn(name = "property_id"))
-    @Column(name = "image_url")
-    private List<String> imageUrls = new ArrayList<>();
+    @Column(precision = 10, scale = 7)
+    private BigDecimal longitude;
+    
+    @Column(name = "parking_available")
+    private Boolean parkingAvailable;
+    
+    @Column(name = "pet_allowed")
+    private Boolean petAllowed;
     
     private Boolean furnished;
+    
+    @Column(name = "short_term_available")
     private Boolean shortTermAvailable;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "admin_notes", columnDefinition = "TEXT")
     private String adminNotes;
+    
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+    
+    @Column(name = "approved_by")
+    private Long approvedBy;
+    
+    @Column(name = "created_date", nullable = false)
+    private LocalDateTime createdDate;
+    
+    @Column(name = "modified_date", nullable = false)
+    private LocalDateTime modifiedDate;
     
     @Version
     private Long version;
@@ -100,172 +121,15 @@ public class PropertyJpaEntity {
     protected PropertyJpaEntity() {}
 
     public enum PropertyTypeEnum {
-        APARTMENT, HOUSE, TOWNHOUSE, CONDO, STUDIO, ROOM
+        APARTMENT, VILLA, STUDIO, TWO_ROOM, THREE_ROOM, OFFICETEL, HOUSE
     }
 
     public enum RentalTypeEnum {
-        LONG_TERM, SHORT_TERM, MONTHLY, WEEKLY, DAILY
+        MONTHLY, JEONSE, SALE
     }
 
     public enum PropertyStatusEnum {
-        DRAFT, PENDING_APPROVAL, ACTIVE, INACTIVE, RENTED, SUSPENDED, DELETED
+        ACTIVE, INACTIVE, PENDING_APPROVAL, REJECTED, COMPLETED, SUSPENDED
     }
 
-    // Constructor with all fields
-    public PropertyJpaEntity(Long id, Long ownerId, String title, String description,
-                           PropertyTypeEnum propertyType, RentalTypeEnum rentalType, PropertyStatusEnum status,
-                           String street, String city, String state, String country, String postalCode,
-                           Double latitude, Double longitude, int bedrooms, int bathrooms, Double floorArea,
-                           Integer floor, Integer totalFloors, boolean hasParking, boolean hasPet,
-                           boolean hasElevator, BigDecimal rentPrice, BigDecimal depositAmount, 
-                           BigDecimal maintenanceFee, String currency, LocalDateTime availableFrom, 
-                           LocalDateTime createdAt, LocalDateTime updatedAt, Long agentId, 
-                           List<String> options, List<String> imageUrls, Boolean furnished, 
-                           Boolean shortTermAvailable, String adminNotes, Long version) {
-        this.id = id;
-        this.ownerId = ownerId;
-        this.title = title;
-        this.description = description;
-        this.propertyType = propertyType;
-        this.rentalType = rentalType;
-        this.status = status;
-        this.street = street;
-        this.city = city;
-        this.state = state;
-        this.country = country;
-        this.postalCode = postalCode;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.bedrooms = bedrooms;
-        this.bathrooms = bathrooms;
-        this.floorArea = floorArea;
-        this.floor = floor;
-        this.totalFloors = totalFloors;
-        this.hasParking = hasParking;
-        this.hasPet = hasPet;
-        this.hasElevator = hasElevator;
-        this.rentPrice = rentPrice;
-        this.depositAmount = depositAmount;
-        this.maintenanceFee = maintenanceFee;
-        this.currency = currency;
-        this.availableFrom = availableFrom;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.agentId = agentId;
-        this.options = options != null ? new ArrayList<>(options) : new ArrayList<>();
-        this.imageUrls = imageUrls != null ? new ArrayList<>(imageUrls) : new ArrayList<>();
-        this.furnished = furnished;
-        this.shortTermAvailable = shortTermAvailable;
-        this.adminNotes = adminNotes;
-        this.version = version;
-    }
-
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public Long getOwnerId() { return ownerId; }
-    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
-    
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    
-    public PropertyTypeEnum getPropertyType() { return propertyType; }
-    public void setPropertyType(PropertyTypeEnum propertyType) { this.propertyType = propertyType; }
-    
-    public RentalTypeEnum getRentalType() { return rentalType; }
-    public void setRentalType(RentalTypeEnum rentalType) { this.rentalType = rentalType; }
-    
-    public PropertyStatusEnum getStatus() { return status; }
-    public void setStatus(PropertyStatusEnum status) { this.status = status; }
-    
-    public String getStreet() { return street; }
-    public void setStreet(String street) { this.street = street; }
-    
-    public String getCity() { return city; }
-    public void setCity(String city) { this.city = city; }
-    
-    public String getState() { return state; }
-    public void setState(String state) { this.state = state; }
-    
-    public String getCountry() { return country; }
-    public void setCountry(String country) { this.country = country; }
-    
-    public String getPostalCode() { return postalCode; }
-    public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
-    
-    public Double getLatitude() { return latitude; }
-    public void setLatitude(Double latitude) { this.latitude = latitude; }
-    
-    public Double getLongitude() { return longitude; }
-    public void setLongitude(Double longitude) { this.longitude = longitude; }
-    
-    public int getBedrooms() { return bedrooms; }
-    public void setBedrooms(int bedrooms) { this.bedrooms = bedrooms; }
-    
-    public int getBathrooms() { return bathrooms; }
-    public void setBathrooms(int bathrooms) { this.bathrooms = bathrooms; }
-    
-    public Double getFloorArea() { return floorArea; }
-    public void setFloorArea(Double floorArea) { this.floorArea = floorArea; }
-    
-    public Integer getFloor() { return floor; }
-    public void setFloor(Integer floor) { this.floor = floor; }
-    
-    public Integer getTotalFloors() { return totalFloors; }
-    public void setTotalFloors(Integer totalFloors) { this.totalFloors = totalFloors; }
-    
-    public boolean isHasParking() { return hasParking; }
-    public void setHasParking(boolean hasParking) { this.hasParking = hasParking; }
-    
-    public boolean isHasPet() { return hasPet; }
-    public void setHasPet(boolean hasPet) { this.hasPet = hasPet; }
-    
-    public boolean isHasElevator() { return hasElevator; }
-    public void setHasElevator(boolean hasElevator) { this.hasElevator = hasElevator; }
-    
-    public BigDecimal getRentPrice() { return rentPrice; }
-    public void setRentPrice(BigDecimal rentPrice) { this.rentPrice = rentPrice; }
-    
-    public BigDecimal getDepositAmount() { return depositAmount; }
-    public void setDepositAmount(BigDecimal depositAmount) { this.depositAmount = depositAmount; }
-    
-    public String getCurrency() { return currency; }
-    public void setCurrency(String currency) { this.currency = currency; }
-    
-    public LocalDateTime getAvailableFrom() { return availableFrom; }
-    public void setAvailableFrom(LocalDateTime availableFrom) { this.availableFrom = availableFrom; }
-    
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-    
-    public BigDecimal getMaintenanceFee() { return maintenanceFee; }
-    public void setMaintenanceFee(BigDecimal maintenanceFee) { this.maintenanceFee = maintenanceFee; }
-    
-    public Long getAgentId() { return agentId; }
-    public void setAgentId(Long agentId) { this.agentId = agentId; }
-    
-    public List<String> getOptions() { return options; }
-    public void setOptions(List<String> options) { this.options = options; }
-    
-    public List<String> getImageUrls() { return imageUrls; }
-    public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
-    
-    public Boolean getFurnished() { return furnished; }
-    public void setFurnished(Boolean furnished) { this.furnished = furnished; }
-    
-    public Boolean getShortTermAvailable() { return shortTermAvailable; }
-    public void setShortTermAvailable(Boolean shortTermAvailable) { this.shortTermAvailable = shortTermAvailable; }
-    
-    public String getAdminNotes() { return adminNotes; }
-    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
-    
-    public Long getVersion() { return version; }
-    public void setVersion(Long version) { this.version = version; }
 }

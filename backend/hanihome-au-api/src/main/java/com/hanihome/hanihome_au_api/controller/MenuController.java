@@ -1,7 +1,7 @@
 package com.hanihome.hanihome_au_api.controller;
 
 import com.hanihome.hanihome_au_api.config.MenuConfiguration;
-import com.hanihome.hanihome_au_api.domain.entity.User;
+import com.hanihome.hanihome_au_api.domain.user.entity.User;
 import com.hanihome.hanihome_au_api.domain.enums.UserRole;
 import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
 import com.hanihome.hanihome_au_api.dto.response.MenuItemDto;
@@ -42,9 +42,10 @@ public class MenuController {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
+            com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole = user.getRole();
+            UserRole role = convertToDeprecatedRole(dddRole);
 
-            log.info("Fetching menu for user: {} with role: {}", userId, role);
+            log.info("Fetching menu for user: {} with role: {}", userId, dddRole);
 
             List<MenuItemDto> menu = menuConfiguration.getMenuForRole(role);
             
@@ -74,9 +75,10 @@ public class MenuController {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
+            com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole = user.getRole();
+            UserRole role = convertToDeprecatedRole(dddRole);
 
-            log.info("Fetching available features for user: {} with role: {}", userId, role);
+            log.info("Fetching available features for user: {} with role: {}", userId, dddRole);
 
             List<String> features = menuConfiguration.getAvailableFeaturesForRole(role);
             
@@ -93,7 +95,7 @@ public class MenuController {
     @GetMapping("/role/{role}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getMenuAndFeaturesForRole(@PathVariable String role) {
         try {
-            UserRole userRole = UserRole.fromString(role);
+            UserRole userRole = UserRole.valueOf(role.toUpperCase());
             
             log.info("Fetching menu and features for role: {}", userRole);
 
@@ -135,24 +137,15 @@ public class MenuController {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
+            com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole = user.getRole();
 
-            log.info("Fetching permissions for user: {} with role: {}", userId, role);
+            log.info("Fetching permissions for user: {} with role: {}", userId, dddRole);
 
             Map<String, Object> permissions = Map.of(
-                "userId", userId,
-                "role", role.name(),
-                "roleName", role.getDisplayName(),
-                "authority", role.getAuthority(),
-                "permissions", role.getPermissions().stream()
-                    .map(permission -> Map.of(
-                        "permission", permission.getPermission(),
-                        "description", permission.getDescription()
-                    ))
-                    .toList(),
-                "authorities", role.getAuthorities().stream()
-                    .map(authority -> authority.getAuthority())
-                    .toList()
+                "userId", user.getId().getValue(),
+                "role", dddRole.name(),
+                "roleName", dddRole.getDisplayName(),
+                "permissions", dddRole.getPermissions()
             );
             
             return ResponseEntity.ok(ApiResponse.success(
@@ -181,16 +174,17 @@ public class MenuController {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
+            com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole = user.getRole();
+            UserRole role = convertToDeprecatedRole(dddRole);
 
-            log.info("Checking feature access for user: {} with role: {} for feature: {}", userId, role, feature);
+            log.info("Checking feature access for user: {} with role: {} for feature: {}", userId, dddRole, feature);
 
             List<String> availableFeatures = menuConfiguration.getAvailableFeaturesForRole(role);
             boolean hasAccess = availableFeatures.contains(feature);
             
             Map<String, Object> result = Map.of(
                 "userId", userId,
-                "role", role.name(),
+                "role", dddRole.name(),
                 "feature", feature,
                 "hasAccess", hasAccess
             );
@@ -222,10 +216,11 @@ public class MenuController {
             }
             
             User user = userOpt.get();
-            UserRole role = user.getRole();
+            com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole = user.getRole();
+            UserRole role = convertToDeprecatedRole(dddRole);
 
             log.info("Checking multiple feature access for user: {} with role: {} for features: {}", 
-                    userId, role, features);
+                    userId, dddRole, features);
 
             List<String> availableFeatures = menuConfiguration.getAvailableFeaturesForRole(role);
             
@@ -237,7 +232,7 @@ public class MenuController {
             
             Map<String, Object> result = Map.of(
                 "userId", userId,
-                "role", role.name(),
+                "role", dddRole.name(),
                 "featureAccess", featureAccess
             );
             
@@ -249,5 +244,15 @@ public class MenuController {
             log.error("Error checking multiple feature access: {}", e.getMessage());
             return ResponseEntity.ok(ApiResponse.error("Failed to check multiple feature access"));
         }
+    }
+
+    // Adapter method to convert DDD UserRole to deprecated UserRole
+    private UserRole convertToDeprecatedRole(com.hanihome.hanihome_au_api.domain.user.valueobject.UserRole dddRole) {
+        return switch (dddRole) {
+            case TENANT -> UserRole.TENANT;
+            case LANDLORD -> UserRole.LANDLORD;
+            case AGENT -> UserRole.AGENT;
+            case ADMIN -> UserRole.ADMIN;
+        };
     }
 }

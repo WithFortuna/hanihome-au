@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, Long> {
     
-    List<PropertyJpaEntity> findByOwnerId(Long ownerId);
+    List<PropertyJpaEntity> findByLandlordId(Long landlordId);
     
     List<PropertyJpaEntity> findByStatus(PropertyJpaEntity.PropertyStatusEnum status);
     
@@ -51,7 +51,7 @@ public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, 
     long countByStatus(@Param("status") PropertyJpaEntity.PropertyStatusEnum status);
     
     @Query(value = """
-        SELECT AVG(p.rent_price) FROM properties p 
+        SELECT AVG(p.rent_price) FROM PropertyJpaEntity p 
         WHERE p.latitude IS NOT NULL 
         AND p.longitude IS NOT NULL
         AND (6371 * acos(cos(radians(:latitude)) * cos(radians(p.latitude)) 
@@ -62,7 +62,7 @@ public interface PropertyJpaRepository extends JpaRepository<PropertyJpaEntity, 
                                      @Param("longitude") Double longitude, 
                                      @Param("radiusKm") Double radiusKm);
     
-    boolean existsByOwnerIdAndStatus(Long ownerId, PropertyJpaEntity.PropertyStatusEnum status);
+    boolean existsByLandlordIdAndStatus(Long landlordId, PropertyJpaEntity.PropertyStatusEnum status);
     
     @Query("""
         SELECT p FROM PropertyJpaEntity p 

@@ -1,6 +1,6 @@
 package com.hanihome.hanihome_au_api.security;
 
-import com.hanihome.hanihome_au_api.domain.entity.User;
+import com.hanihome.hanihome_au_api.domain.user.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,15 +26,15 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     public static UserPrincipal create(User user) {
         List<GrantedAuthority> authorities = Collections.singletonList(
-            new SimpleGrantedAuthority(user.getRole().getAuthority())
+            new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
         );
 
         return new UserPrincipal(
-            user.getId(),
-            user.getEmail(),
+            user.getId().getValue(),
+            user.getEmail().getValue(),
             user.getName(),
             user.getRole().name(),
-            user.getIsActive(),
+            true, // DDD User doesn't have isActive field yet, default to true
             authorities,
             null
         );

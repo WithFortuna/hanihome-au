@@ -470,7 +470,7 @@
             "description": "매물 기본 정보, 상세 정보, 옵션 선택이 포함된 단계별 폼 컴포넌트를 구현한다.",
             "dependencies": [],
             "details": "React Hook Form과 Yup을 활용한 폼 유효성 검사, 단계별 진행률 표시기, 임시 저장 기능, 반응형 디자인 적용. 매물 유형별 맞춤 폼 필드 표시.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -920,7 +920,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-02T21:51:40.759Z",
+      "updated": "2025-08-03T05:08:29.173Z",
       "description": "Tasks for master context"
     }
   }

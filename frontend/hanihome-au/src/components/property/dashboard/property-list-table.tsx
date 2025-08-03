@@ -16,6 +16,7 @@ import {
 import { PropertyWithStats, PropertyFilters } from '../property-dashboard';
 import { PropertyStatus, PropertyType, RentalType } from '@/lib/types/property';
 import PropertyEditModal from './property-edit-modal';
+import { EnhancedPropertyEditModal } from '../enhanced-property-edit-modal';
 import PropertyDeleteDialog from './property-delete-dialog';
 
 interface PropertyListTableProps {
@@ -373,13 +374,20 @@ export default function PropertyListTable({
 
       {/* Modals */}
       {editingProperty && (
-        <PropertyEditModal
+        <EnhancedPropertyEditModal
           property={editingProperty}
           isOpen={!!editingProperty}
           onClose={() => setEditingProperty(null)}
           onSave={(updatedProperty) => {
             // Handle save logic here
             setEditingProperty(null);
+          }}
+          onStatusChange={onStatusChange}
+          currentUser={{ id: '1', name: 'Current User', role: 'admin' }}
+          permissions={{
+            canEdit: true,
+            canChangeStatus: true,
+            canViewHistory: true,
           }}
         />
       )}

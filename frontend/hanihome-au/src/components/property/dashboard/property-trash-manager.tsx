@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { 
   Trash2, 
   RotateCcw, 
@@ -16,7 +16,15 @@ import {
   AlertCircle,
   Info,
   Eye,
-  FileX
+  FileX,
+  Archive,
+  Database,
+  FileImage,
+  MessageSquare,
+  Heart,
+  Timer,
+  Zap,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +32,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PropertyWithStats } from '../property-dashboard';
+import { EnhancedPropertyDeleteModal } from '../enhanced-property-delete-modal';
 
 interface DeletedProperty extends PropertyWithStats {
   deletedAt: Date;

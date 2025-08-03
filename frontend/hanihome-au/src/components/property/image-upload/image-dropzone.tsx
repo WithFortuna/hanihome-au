@@ -28,6 +28,19 @@ export interface ImageFile {
   url?: string; // S3 URL after upload
   dimensions?: { width: number; height: number };
   compressionRatio?: number;
+  // Extended metadata for enhanced management
+  metadata?: {
+    alt?: string; // Alt text for accessibility
+    caption?: string; // Image caption
+    tags?: string[]; // Image tags for search
+    capturedAt?: Date; // When photo was taken
+    uploadedAt?: Date; // When uploaded to system
+    fileSize: number; // Original file size
+    mimeType: string; // MIME type
+    isThumbnail?: boolean; // Is this the thumbnail image
+    sortOrder?: number; // Manual sort order
+    rotation?: number; // Rotation angle (0, 90, 180, 270)
+  };
 }
 
 interface ImageDropzoneProps {
@@ -209,7 +222,7 @@ export function ImageDropzone({
     }
 
     // Process valid files
-    const newImages: ImageFile[] = validFiles.map(file => ({
+    const newImages: ImageFile[] = validFiles.map((file, index) => ({
       id: Math.random().toString(36).substring(2),
       file,
       preview: URL.createObjectURL(file),
@@ -218,6 +231,14 @@ export function ImageDropzone({
       isUploaded: false,
       isCompressing: false,
       compressionProgress: 0,
+      metadata: {
+        fileSize: file.size,
+        mimeType: file.type,
+        uploadedAt: new Date(),
+        sortOrder: images.length + index,
+        rotation: 0,
+        tags: [],
+      },
     }));
 
     const updatedImages = [...images, ...newImages];

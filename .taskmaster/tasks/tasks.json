@@ -723,7 +723,7 @@
               "8.6"
             ],
             "details": "알림 타입별 사용자 설정 UI (SSE, 푸시, 이메일 각각 on/off), 알림 발송 이력 관리 테이블, 알림 전송 상태 추적 (전송됨/실패/읽음), 사용자별 알림 선호도 저장, 알림 전송 실패 시 대체 채널 사용 로직, 알림 성능 모니터링 및 메트릭 수집",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -746,7 +746,7 @@
             "description": "거래의 생명주기를 관리하는 상태 머신과 상태 전환 로직을 구현한다.",
             "dependencies": [],
             "details": "거래 상태 enum 정의 (PROPOSED, NEGOTIATING, APPROVED, CONTRACT_PENDING, COMPLETED, CANCELLED), 상태 전환 규칙 및 검증 로직, 상태별 권한 체크, 상태 변경 이벤트 처리, 동시성 제어를 위한 낙관적 락 적용",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -757,7 +757,7 @@
               "9.1"
             ],
             "details": "거래 제안 생성/수정 폼, 카운터 오퍼 기능, 협상 메시지 교환 인터페이스, 협상 히스토리 타임라인, 자동 협상 만료 처리, 협상 상태별 UI 조건부 렌더링",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -768,7 +768,7 @@
               "9.2"
             ],
             "details": "DocuSign SDK 설정 및 인증, 계약서 생성 API 연동, 서명 요청 전송, 서명 완료 웹훅 처리, 서명된 계약서 다운로드 및 저장, API 오류 처리 및 재시도 로직",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -777,7 +777,7 @@
             "description": "다양한 임대 유형별 계약서 템플릿을 관리하고 동적으로 생성하는 시스템을 구현한다.",
             "dependencies": [],
             "details": "템플릿 엔티티 설계, 템플릿 변수 치환 엔진, 임대 유형별 템플릿 분류, 템플릿 버전 관리, 관리자용 템플릿 편집 인터페이스, 템플릿 미리보기 기능",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -834,7 +834,7 @@
             "description": "거래 후 리뷰 작성을 위한 Review, Rating, ReviewReport 엔티티를 설계하고 PostgreSQL 데이터베이스 스키마를 구현한다.",
             "dependencies": [],
             "details": "Review 엔티티 (거래 ID, 작성자, 대상자, 별점, 텍스트 리뷰, 작성일시), Rating 엔티티 (카테고리별 평가), ReviewReport 엔티티 (신고 정보) 설계. JPA 엔티티 매핑 및 QueryDSL 설정. 인덱스 최적화 및 데이터 무결성 제약조건 설정.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -845,7 +845,7 @@
               "10.1"
             ],
             "details": "POST /api/reviews (리뷰 작성), GET /api/reviews/{userId} (사용자별 리뷰 조회), GET /api/reviews/property/{propertyId} (매물별 리뷰 조회) API 구현. 별점 평가 및 텍스트 리뷰 검증 로직. 중복 리뷰 방지 및 거래 완료 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -856,7 +856,7 @@
               "10.2"
             ],
             "details": "사용자 활동 기반 신뢰도 점수 계산 알고리즘. 텍스트 분석을 통한 스팸 리뷰 탐지 (금지어 필터링, 반복 패턴 검출). 의심스러운 리뷰 자동 플래깅 시스템. 신뢰도 점수에 따른 리뷰 가중치 적용.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -867,7 +867,7 @@
               "10.1"
             ],
             "details": "대시보드 레이아웃 및 네비게이션 구현. 매물/회원/거래 통계 시각화 (Chart.js 또는 Recharts 사용). 사용자 관리 인터페이스 (검색, 필터링, 상태 변경). 신고 처리 워크플로우 UI. 반응형 디자인 적용.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -920,7 +920,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-04T18:43:23.675Z",
+      "updated": "2025-08-04T23:35:59.927Z",
       "description": "Tasks for master context"
     }
   }

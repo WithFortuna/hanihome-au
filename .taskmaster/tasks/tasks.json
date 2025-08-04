@@ -558,7 +558,7 @@
         "dependencies": [
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -699,7 +699,7 @@
               "8.1"
             ],
             "details": "Firebase 프로젝트 설정 및 FCM 서비스 계정 키 구성, Spring Boot에서 FCM SDK 연동, 사용자별 FCM 토큰 관리, 예약 관련 푸시 알림 템플릿 작성, Next.js에서 FCM 토큰 등록 및 알림 수신, 알림 클릭 시 해당 페이지로 이동 처리",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -710,7 +710,7 @@
               "8.1"
             ],
             "details": "AWS SES 또는 SendGrid 이메일 서비스 연동, 이메일 템플릿 엔진 설정 (Thymeleaf 또는 FreeMarker), 예약 확인/변경/취소 이메일 템플릿 작성, 예약 24시간 전 리마인더 스케줄링, 이메일 전송 실패 시 재시도 로직, 이메일 전송 로그 및 상태 추적",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -920,7 +920,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-04T17:16:44.677Z",
+      "updated": "2025-08-04T18:43:23.675Z",
       "description": "Tasks for master context"
     }
   }

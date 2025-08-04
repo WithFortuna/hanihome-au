@@ -4,6 +4,9 @@ import com.hanihome.hanihome_au_api.application.viewing.dto.CreateViewingCommand
 import com.hanihome.hanihome_au_api.application.viewing.dto.UpdateViewingCommand;
 import com.hanihome.hanihome_au_api.application.viewing.dto.ViewingResponseDto;
 import com.hanihome.hanihome_au_api.application.notification.service.SSENotificationService;
+import com.hanihome.hanihome_au_api.application.notification.service.FCMNotificationService;
+import com.hanihome.hanihome_au_api.application.notification.service.FCMTokenService;
+import com.hanihome.hanihome_au_api.application.notification.service.EmailNotificationService;
 import com.hanihome.hanihome_au_api.domain.entity.Viewing;
 import com.hanihome.hanihome_au_api.domain.enums.ViewingStatus;
 import com.hanihome.hanihome_au_api.repository.ViewingRepository;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +31,9 @@ public class ViewingService {
     private final ViewingRepository viewingRepository;
     private final ViewingConflictService conflictService;
     private final SSENotificationService notificationService;
+    private final FCMNotificationService fcmNotificationService;
+    private final FCMTokenService fcmTokenService;
+    private final EmailNotificationService emailNotificationService;
 
     /**
      * Create a new viewing request
@@ -334,41 +341,157 @@ public class ViewingService {
                 "status", viewing.getStatus().name()
             );
             
+            String propertyTitle = "Property #" + viewing.getPropertyId(); // TODO: Get actual property title
+            
             // Determine who should receive the notification based on the type
             switch (notificationType) {
                 case VIEWING_REQUESTED:
                     // Notify landlord and agent (if present)
                     notificationService.sendViewingNotification(viewing.getLandlordUserId(), notificationType, notificationData);
+                    sendFCMNotification(viewing.getLandlordUserId(), "CREATED", viewing.getId(), propertyTitle);
+                    sendEmailNotification(viewing, "CREATED", viewing.getLandlordUserId());
+                    
                     if (viewing.getAgentUserId() != null) {
                         notificationService.sendViewingNotification(viewing.getAgentUserId(), notificationType, notificationData);
+                        sendFCMNotification(viewing.getAgentUserId(), "CREATED", viewing.getId(), propertyTitle);
+                        sendEmailNotification(viewing, "CREATED", viewing.getAgentUserId());
                     }
                     break;
                     
                 case VIEWING_CONFIRMED:
                 case VIEWING_REMINDER:
                     // Notify tenant
+                    String emailType = notificationType == SSENotificationService.ViewingNotificationType.VIEWING_CONFIRMED ? "CONFIRMED" : "REMINDER";
                     notificationService.sendViewingNotification(viewing.getTenantUserId(), notificationType, notificationData);
+                    sendFCMNotification(viewing.getTenantUserId(), emailType, viewing.getId(), propertyTitle);
+                    sendEmailNotification(viewing, emailType, viewing.getTenantUserId());
                     break;
                     
                 case VIEWING_CANCELLED:
                 case VIEWING_RESCHEDULED:
                     // Notify all parties
+                    String fcmType = notificationType == SSENotificationService.ViewingNotificationType.VIEWING_CANCELLED ? "CANCELLED" : "UPDATED";
+                    
                     notificationService.sendViewingNotification(viewing.getTenantUserId(), notificationType, notificationData);
+                    sendFCMNotification(viewing.getTenantUserId(), fcmType, viewing.getId(), propertyTitle);
+                    sendEmailNotification(viewing, fcmType, viewing.getTenantUserId());
+                    
                     notificationService.sendViewingNotification(viewing.getLandlordUserId(), notificationType, notificationData);
+                    sendFCMNotification(viewing.getLandlordUserId(), fcmType, viewing.getId(), propertyTitle);
+                    sendEmailNotification(viewing, fcmType, viewing.getLandlordUserId());
+                    
                     if (viewing.getAgentUserId() != null) {
                         notificationService.sendViewingNotification(viewing.getAgentUserId(), notificationType, notificationData);
+                        sendFCMNotification(viewing.getAgentUserId(), fcmType, viewing.getId(), propertyTitle);
+                        sendEmailNotification(viewing, fcmType, viewing.getAgentUserId());
                     }
                     break;
                     
                 case VIEWING_COMPLETED:
                     // Notify tenant for feedback request
                     notificationService.sendViewingNotification(viewing.getTenantUserId(), notificationType, notificationData);
+                    sendFCMNotification(viewing.getTenantUserId(), "COMPLETED", viewing.getId(), propertyTitle);
                     break;
             }
             
         } catch (Exception e) {
             log.warn("Failed to send viewing notification: {}", e.getMessage());
             // Don't fail the operation if notification fails
+        }
+    }
+    
+    /**
+     * Send FCM notification to a user
+     */
+    private void sendFCMNotification(Long userId, String notificationType, Long viewingId, String propertyTitle) {
+        try {
+            List<String> userTokens = fcmTokenService.getActiveTokensByUserId(userId);
+            
+            if (!userTokens.isEmpty()) {
+                for (String token : userTokens) {
+                    fcmNotificationService.sendViewingNotification(token, notificationType, viewingId, propertyTitle)
+                        .whenComplete((result, throwable) -> {
+                            if (throwable != null) {
+                                log.warn("Failed to send FCM notification to user {}: {}", userId, throwable.getMessage());
+                            } else {
+                                log.debug("FCM notification sent successfully to user {}: {}", userId, result);
+                                fcmTokenService.updateTokenUsage(token);
+                            }
+                        });
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send FCM notification to user {}: {}", userId, e.getMessage());
+        }
+    }
+    
+    /**
+     * Send email notification for viewing events
+     */
+    private void sendEmailNotification(Viewing viewing, String notificationType, Long recipientUserId) {
+        try {
+            // In a real implementation, you would fetch user details from UserService
+            // For now, we'll use placeholder values
+            String recipientEmail = "user" + recipientUserId + "@example.com"; // TODO: Get real email
+            String recipientName = "사용자 " + recipientUserId; // TODO: Get real name
+            String propertyTitle = "Property #" + viewing.getPropertyId(); // TODO: Get real property title
+            
+            switch (notificationType) {
+                case "CREATED":
+                    // Send new viewing request email to landlord/agent
+                    emailNotificationService.sendNewViewingRequestEmail(
+                        recipientEmail,
+                        recipientName,
+                        propertyTitle,
+                        viewing.getScheduledAt(),
+                        "임차인 " + viewing.getTenantUserId(), // TODO: Get real tenant name
+                        viewing.getContactPhone(),
+                        viewing.getTenantNotes(),
+                        viewing.getId()
+                    );
+                    break;
+                    
+                case "CONFIRMED":
+                    // Send confirmation email to tenant
+                    emailNotificationService.sendViewingConfirmationEmail(
+                        recipientEmail,
+                        recipientName,
+                        viewing.getId(),
+                        propertyTitle,
+                        viewing.getScheduledAt(),
+                        viewing.getDurationMinutes(),
+                        "임대인 " + viewing.getLandlordUserId(), // TODO: Get real landlord name
+                        viewing.getContactPhone()
+                    );
+                    break;
+                    
+                case "CANCELLED":
+                    // Send cancellation email
+                    emailNotificationService.sendViewingCancellationEmail(
+                        recipientEmail,
+                        recipientName,
+                        propertyTitle,
+                        viewing.getScheduledAt(),
+                        viewing.getCancellationReason(),
+                        "사용자 " + viewing.getCancelledByUserId() // TODO: Get real canceller name
+                    );
+                    break;
+                    
+                case "REMINDER":
+                    // Send reminder email
+                    emailNotificationService.sendViewingReminderEmail(
+                        recipientEmail,
+                        recipientName,
+                        propertyTitle,
+                        viewing.getScheduledAt(),
+                        viewing.getContactPhone(),
+                        "매물 주소" // TODO: Get real property address
+                    );
+                    break;
+            }
+            
+        } catch (Exception e) {
+            log.warn("Failed to send email notification for viewing {}: {}", viewing.getId(), e.getMessage());
         }
     }
 }

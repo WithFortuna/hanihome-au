@@ -28,15 +28,18 @@ public class PropertyApplicationService {
     private final PropertyDomainService propertyDomainService;
     private final CreatePropertyUseCase createPropertyUseCase;
     private final DomainEventPublisher domainEventPublisher;
+    private final SearchCacheEvictionService cacheEvictionService;
 
     public PropertyApplicationService(PropertyRepository propertyRepository,
                                     PropertyDomainService propertyDomainService,
                                     CreatePropertyUseCase createPropertyUseCase,
-                                    DomainEventPublisher domainEventPublisher) {
+                                    DomainEventPublisher domainEventPublisher,
+                                    SearchCacheEvictionService cacheEvictionService) {
         this.propertyRepository = propertyRepository;
         this.propertyDomainService = propertyDomainService;
         this.createPropertyUseCase = createPropertyUseCase;
         this.domainEventPublisher = domainEventPublisher;
+        this.cacheEvictionService = cacheEvictionService;
     }
 
     public PropertyResponseDto createProperty(CreatePropertyCommand command) {

@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/gno_root/Desktop/open_the_door/lets_developing/project/olaf_universe/demo/.claude/hooks/stop-automation123.sh",
+            "command": "/Users/gno_root/Desktop/open_the_door/lets_developing/project/olaf_universe/demo/.claude/hooks/stop-automation.sh",
             "timeout": 30000
           }
         ]

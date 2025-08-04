@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.hanihome.claude-auto-restart</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/gno_root/Desktop/open_the_door/lets_developing/project/olaf_universe/demo/unified-claude-restart-manager.sh</string>
+  </array>
+
+  <key>StartInterval</key>
+  <integer>18000</integer> <!-- 5시간 -->
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/gno_root/Library/Logs/claude-restart.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/gno_root/Library/Logs/claude-restart.err</string>
+  
+  <!-- GUI 알림을 위해 필요한 경우 -->  
+  <key>LimitLoadToSessionType</key>
+  <string>Aqua</string>
+
+</dict>
+</plist>

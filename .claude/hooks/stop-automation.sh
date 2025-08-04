@@ -47,7 +47,7 @@ main() {
 
     # Determine work type from recent session activity
     local work_type
-    work_type=$(determine_work_type "$transcript_path")
+    work_type=$( WORK_DETECTOR_LOG_LEVEL=DEBUG determine_work_type "$transcript_path")
     log "Detected work type: $work_type"
 
     # Execute appropriate workflow based on work type

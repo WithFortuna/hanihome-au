@@ -2,20 +2,45 @@
 
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, AlertCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { 
+  compressImage, 
+  validateImageFile, 
+  getImageDimensions,
+  formatFileSize,
+  PROPERTY_IMAGE_COMPRESSION_OPTIONS 
+} from '@/lib/utils/image-compression';
 
 export interface ImageFile {
   id: string;
   file: File;
+  originalFile?: File; // Keep reference to original file
   preview: string;
   uploadProgress: number;
   isUploading: boolean;
   isUploaded: boolean;
+  isCompressing?: boolean;
+  compressionProgress?: number;
   error?: string;
   url?: string; // S3 URL after upload
+  dimensions?: { width: number; height: number };
+  compressionRatio?: number;
+  // Extended metadata for enhanced management
+  metadata?: {
+    alt?: string; // Alt text for accessibility
+    caption?: string; // Image caption
+    tags?: string[]; // Image tags for search
+    capturedAt?: Date; // When photo was taken
+    uploadedAt?: Date; // When uploaded to system
+    fileSize: number; // Original file size
+    mimeType: string; // MIME type
+    isThumbnail?: boolean; // Is this the thumbnail image
+    sortOrder?: number; // Manual sort order
+    rotation?: number; // Rotation angle (0, 90, 180, 270)
+  };
 }
 
 interface ImageDropzoneProps {
@@ -24,6 +49,8 @@ interface ImageDropzoneProps {
   maxFileSize?: number; // in bytes
   acceptedFileTypes?: string[];
   existingImages?: ImageFile[];
+  enableCompression?: boolean;
+  compressionQuality?: number;
 }
 
 export function ImageDropzone({
@@ -32,9 +59,71 @@ export function ImageDropzone({
   maxFileSize = 5 * 1024 * 1024, // 5MB
   acceptedFileTypes = ['image/jpeg', 'image/png', 'image/webp'],
   existingImages = [],
+  enableCompression = true,
+  compressionQuality = 0.85,
 }: ImageDropzoneProps) {
   const [images, setImages] = useState<ImageFile[]>(existingImages);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const compressImageFile = async (imageFile: ImageFile): Promise<ImageFile> => {
+    if (!enableCompression) return imageFile;
+
+    try {
+      // Update compression status
+      setImages(prev => prev.map(img => 
+        img.id === imageFile.id 
+          ? { ...img, isCompressing: true, compressionProgress: 0 }
+          : img
+      ));
+
+      // Get image dimensions
+      const dimensions = await getImageDimensions(imageFile.file);
+      
+      // Simulate compression progress
+      for (let progress = 0; progress <= 80; progress += 20) {
+        setImages(prev => prev.map(img => 
+          img.id === imageFile.id 
+            ? { ...img, compressionProgress: progress }
+            : img
+        ));
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      // Compress the image
+      const compressionResult = await compressImage(imageFile.file, {
+        ...PROPERTY_IMAGE_COMPRESSION_OPTIONS,
+        initialQuality: compressionQuality,
+      });
+
+      // Final progress update
+      setImages(prev => prev.map(img => 
+        img.id === imageFile.id 
+          ? { ...img, compressionProgress: 100 }
+          : img
+      ));
+
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Update with compressed file
+      return {
+        ...imageFile,
+        originalFile: imageFile.file,
+        file: compressionResult.compressedFile,
+        dimensions,
+        compressionRatio: compressionResult.compressionRatio,
+        isCompressing: false,
+        compressionProgress: 100,
+      };
+    } catch (error) {
+      console.error('Compression failed:', error);
+      setImages(prev => prev.map(img => 
+        img.id === imageFile.id 
+          ? { ...img, isCompressing: false, error: 'compression failed' }
+          : img
+      ));
+      return imageFile;
+    }
+  };
 
   const simulateUpload = async (imageFile: ImageFile): Promise<string> => {
     // Simulate S3 upload process
@@ -59,13 +148,17 @@ export function ImageDropzone({
 
   const uploadImage = async (imageFile: ImageFile) => {
     try {
+      // First compress the image if enabled
+      const compressedImageFile = await compressImageFile(imageFile);
+      
+      // Update state with compressed file
       setImages(prev => prev.map(img => 
         img.id === imageFile.id 
-          ? { ...img, isUploading: true, error: undefined }
+          ? { ...compressedImageFile, isUploading: true, error: undefined }
           : img
       ));
 
-      const s3Url = await simulateUpload(imageFile);
+      const s3Url = await simulateUpload(compressedImageFile);
 
       setImages(prev => prev.map(img => 
         img.id === imageFile.id 
@@ -83,7 +176,8 @@ export function ImageDropzone({
         img.id === imageFile.id 
           ? { 
               ...img, 
-              isUploading: false, 
+              isUploading: false,
+              isCompressing: false,
               error: 'Upload failed. Please try again.',
               uploadProgress: 0 
             }
@@ -109,25 +203,53 @@ export function ImageDropzone({
       return;
     }
 
-    // Process accepted files
-    const newImages: ImageFile[] = acceptedFiles.map(file => ({
+    // Validate each file
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    for (const file of acceptedFiles) {
+      const validation = validateImageFile(file);
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(`${file.name}: ${validation.error}`);
+      }
+    }
+
+    if (invalidFiles.length > 0) {
+      setUploadError(`Invalid files: ${invalidFiles.join('; ')}`);
+      if (validFiles.length === 0) return;
+    }
+
+    // Process valid files
+    const newImages: ImageFile[] = validFiles.map((file, index) => ({
       id: Math.random().toString(36).substring(2),
       file,
       preview: URL.createObjectURL(file),
       uploadProgress: 0,
       isUploading: false,
       isUploaded: false,
+      isCompressing: false,
+      compressionProgress: 0,
+      metadata: {
+        fileSize: file.size,
+        mimeType: file.type,
+        uploadedAt: new Date(),
+        sortOrder: images.length + index,
+        rotation: 0,
+        tags: [],
+      },
     }));
 
     const updatedImages = [...images, ...newImages];
     setImages(updatedImages);
     onImagesChange(updatedImages);
 
-    // Start uploading each image
+    // Start processing each image (compression + upload)
     newImages.forEach(imageFile => {
       uploadImage(imageFile);
     });
-  }, [images, maxFiles, onImagesChange]);
+  }, [images, maxFiles, onImagesChange, enableCompression, compressionQuality]);
 
   const removeImage = (imageId: string) => {
     const imageToRemove = images.find(img => img.id === imageId);
@@ -155,22 +277,35 @@ export function ImageDropzone({
     disabled: images.length >= maxFiles,
   });
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const getProcessingStatus = (imageFile: ImageFile): string => {
+    if (imageFile.isCompressing) {
+      return `압축 중... ${imageFile.compressionProgress || 0}%`;
+    } else if (imageFile.isUploading) {
+      return `업로드 중... ${imageFile.uploadProgress}%`;
+    } else if (imageFile.isUploaded) {
+      return '완료';
+    } else if (imageFile.error) {
+      return '오류';
+    }
+    return '대기 중';
   };
 
-  const getTotalUploadProgress = (): number => {
+  const getOverallProgress = (): number => {
     if (images.length === 0) return 0;
-    const totalProgress = images.reduce((sum, img) => sum + img.uploadProgress, 0);
+    
+    const totalProgress = images.reduce((sum, img) => {
+      if (img.isUploaded) return sum + 100;
+      if (img.isUploading) return sum + (50 + img.uploadProgress * 0.5);
+      if (img.isCompressing) return sum + (img.compressionProgress || 0) * 0.5;
+      return sum;
+    }, 0);
+    
     return Math.round(totalProgress / images.length);
   };
 
-  const isAnyUploading = images.some(img => img.isUploading);
+  const isAnyProcessing = images.some(img => img.isUploading || img.isCompressing);
   const uploadedCount = images.filter(img => img.isUploaded).length;
+  const compressingCount = images.filter(img => img.isCompressing).length;
 
   return (
     <div className="space-y-6">
@@ -224,14 +359,24 @@ export function ImageDropzone({
         </div>
       )}
 
-      {/* Upload Progress */}
-      {isAnyUploading && (
+      {/* Processing Progress */}
+      {isAnyProcessing && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-700">업로드 진행 중...</span>
-            <span className="text-sm text-blue-600">{getTotalUploadProgress()}%</span>
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-700">
+                {compressingCount > 0 ? '이미지 압축 및 업로드 중...' : '업로드 진행 중...'}
+              </span>
+            </div>
+            <span className="text-sm text-blue-600">{getOverallProgress()}%</span>
           </div>
-          <Progress value={getTotalUploadProgress()} className="h-2" />
+          <Progress value={getOverallProgress()} className="h-2" />
+          {enableCompression && compressingCount > 0 && (
+            <p className="text-xs text-blue-600 mt-2">
+              {compressingCount}개 이미지 압축 중 • 파일 크기를 최적화하고 있습니다
+            </p>
+          )}
         </div>
       )}
 
@@ -257,8 +402,22 @@ export function ImageDropzone({
                     className="w-full h-full object-cover"
                   />
                   
+                  {/* Compression Status Overlay */}
+                  {imageFile.isCompressing && (
+                    <div className="absolute inset-0 bg-purple-500 bg-opacity-75 flex items-center justify-center">
+                      <div className="text-center text-white">
+                        <Zap className="w-6 h-6 mx-auto mb-1" />
+                        <div className="text-xs mb-2">압축 중...</div>
+                        <Progress 
+                          value={imageFile.compressionProgress || 0} 
+                          className="h-1 w-16 bg-purple-600" 
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {/* Upload Status Overlay */}
-                  {imageFile.isUploading && (
+                  {imageFile.isUploading && !imageFile.isCompressing && (
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                       <div className="text-center text-white">
                         <div className="mb-2">업로드 중...</div>
@@ -309,7 +468,20 @@ export function ImageDropzone({
                 {/* File Info */}
                 <div className="mt-2 text-xs text-gray-500 text-center">
                   <p className="truncate">{imageFile.file.name}</p>
-                  <p>{formatFileSize(imageFile.file.size)}</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <span>{formatFileSize(imageFile.file.size)}</span>
+                    {imageFile.originalFile && imageFile.compressionRatio && (
+                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                        -{imageFile.compressionRatio}%
+                      </Badge>
+                    )}
+                  </div>
+                  {imageFile.dimensions && (
+                    <p className="text-gray-400">
+                      {imageFile.dimensions.width} × {imageFile.dimensions.height}
+                    </p>
+                  )}
+                  <p className="text-xs">{getProcessingStatus(imageFile)}</p>
                 </div>
               </div>
             ))}
@@ -320,12 +492,49 @@ export function ImageDropzone({
       {/* Upload Summary */}
       {images.length > 0 && (
         <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600">
-            <p>총 {images.length}개 이미지</p>
-            <p>업로드 완료: {uploadedCount}개</p>
-            <p>업로드 중: {images.filter(img => img.isUploading).length}개</p>
+          <div className="text-sm text-gray-600 space-y-1">
+            <div className="flex justify-between">
+              <span>총 이미지:</span>
+              <span className="font-medium">{images.length}개</span>
+            </div>
+            <div className="flex justify-between">
+              <span>업로드 완료:</span>
+              <span className="font-medium text-green-600">{uploadedCount}개</span>
+            </div>
+            {enableCompression && (
+              <div className="flex justify-between">
+                <span>압축 진행 중:</span>
+                <span className="font-medium text-purple-600">{compressingCount}개</span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span>업로드 중:</span>
+              <span className="font-medium text-blue-600">
+                {images.filter(img => img.isUploading && !img.isCompressing).length}개
+              </span>
+            </div>
             {images.some(img => img.error) && (
-              <p className="text-red-600">오류: {images.filter(img => img.error).length}개</p>
+              <div className="flex justify-between">
+                <span>오류:</span>
+                <span className="font-medium text-red-600">
+                  {images.filter(img => img.error).length}개
+                </span>
+              </div>
+            )}
+            {enableCompression && images.some(img => img.compressionRatio) && (
+              <div className="pt-2 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <span>평균 압축률:</span>
+                  <span className="font-medium text-green-600">
+                    -{Math.round(
+                      images
+                        .filter(img => img.compressionRatio)
+                        .reduce((sum, img) => sum + (img.compressionRatio || 0), 0) /
+                      images.filter(img => img.compressionRatio).length
+                    )}%
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         </div>

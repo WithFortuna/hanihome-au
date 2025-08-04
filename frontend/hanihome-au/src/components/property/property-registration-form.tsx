@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useAutoSave } from '@/hooks/use-auto-save';
 import { 
   PropertyFormData, 
   PROPERTY_FORM_STEPS, 
@@ -15,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Save, Trash2 } from 'lucide-react';
 import { PropertyBasicInfoStep } from './steps/property-basic-info-step';
 import { PropertyDetailsStep } from './steps/property-details-step';
 import { PropertyOptionsStep } from './steps/property-options-step';
@@ -66,6 +67,7 @@ export function PropertyRegistrationForm({
 }: PropertyRegistrationFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
 
   const methods = useForm<PropertyFormData>({
     resolver: zodResolver(propertyFormSchema),
@@ -85,7 +87,28 @@ export function PropertyRegistrationForm({
     mode: 'onChange',
   });
 
-  const { handleSubmit, trigger, formState: { errors, isValid } } = methods;
+  const { handleSubmit, trigger, formState: { errors, isValid }, watch, setValue } = methods;
+
+  // Auto-save functionality
+  const { clearSavedData, getLastSaveTime } = useAutoSave({
+    watch,
+    setValue,
+    storageKey: 'property-registration-form',
+    debounceMs: 2000, // Save after 2 seconds of inactivity
+  });
+
+  // Update last save time periodically
+  useEffect(() => {
+    const updateLastSaveTime = () => {
+      const time = getLastSaveTime();
+      setLastSaveTime(time);
+    };
+
+    updateLastSaveTime();
+    const interval = setInterval(updateLastSaveTime, 10000); // Update every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [getLastSaveTime]);
 
   const currentStepData = PROPERTY_FORM_STEPS[currentStep];
   const isLastStep = currentStep === PROPERTY_FORM_STEPS.length - 1;
@@ -126,10 +149,21 @@ export function PropertyRegistrationForm({
   const onFormSubmit = async (data: PropertyFormData) => {
     try {
       await onSubmit(data);
+      // Clear saved data after successful submission
+      clearSavedData();
     } catch (error) {
       console.error('Form submission error:', error);
     }
   };
+
+  const handleClearDraft = useCallback(() => {
+    if (confirm('임시 저장된 데이터를 삭제하시겠습니까?')) {
+      clearSavedData();
+      setLastSaveTime(null);
+      // Reset form to initial values
+      methods.reset();
+    }
+  }, [clearSavedData, methods]);
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -153,7 +187,28 @@ export function PropertyRegistrationForm({
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">매물 등록</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold">매물 등록</CardTitle>
+              
+              {/* Auto-save status */}
+              <div className="flex items-center gap-2 text-sm">
+                {lastSaveTime && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Save className="w-4 h-4" />
+                    <span>임시 저장됨 ({lastSaveTime.toLocaleTimeString()})</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleClearDraft}
+                      className="h-6 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
             
             {/* Progress Bar */}
             <div className="w-full mt-4">

@@ -81,15 +81,36 @@ export function PropertyImagesStep() {
   const handleSetThumbnail = useCallback((imageId: string) => {
     setThumbnailId(imageId);
     
+    // Update metadata for all images
+    const updatedImages = images.map(img => ({
+      ...img,
+      metadata: {
+        ...img.metadata,
+        isThumbnail: img.id === imageId,
+      }
+    }));
+    
     // Move thumbnail image to first position
-    const imageIndex = images.findIndex(img => img.id === imageId);
+    const imageIndex = updatedImages.findIndex(img => img.id === imageId);
     if (imageIndex > 0) {
-      const reorderedImages = [...images];
+      const reorderedImages = [...updatedImages];
       const thumbnailImage = reorderedImages.splice(imageIndex, 1)[0];
       reorderedImages.unshift(thumbnailImage);
-      handleReorder(reorderedImages);
+      setImages(reorderedImages);
+      updateFormImages(reorderedImages);
+    } else {
+      setImages(updatedImages);
+      updateFormImages(updatedImages);
     }
-  }, [images, handleReorder]);
+  }, [images, updateFormImages]);
+
+  const handleUpdateImage = useCallback((imageId: string, updates: Partial<ImageFile>) => {
+    const updatedImages = images.map(img => 
+      img.id === imageId ? { ...img, ...updates } : img
+    );
+    setImages(updatedImages);
+    updateFormImages(updatedImages);
+  }, [images, updateFormImages]);
 
   const uploadedCount = images.filter(img => img.isUploaded).length;
   const uploadingCount = images.filter(img => img.isUploading).length;
@@ -152,6 +173,7 @@ export function PropertyImagesStep() {
             onReorder={handleReorder}
             onRemove={handleRemoveImage}
             onSetThumbnail={handleSetThumbnail}
+            onUpdateImage={handleUpdateImage}
             thumbnailId={thumbnailId || undefined}
           />
         </TabsContent>
@@ -159,13 +181,15 @@ export function PropertyImagesStep() {
 
       {/* Instructions */}
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h4 className="font-medium text-green-800 mb-2">이미지 업로드 가이드</h4>
+        <h4 className="font-medium text-green-800 mb-2">이미지 관리 가이드</h4>
         <ul className="text-sm text-green-700 space-y-1">
           <li>• 최대 10개의 이미지까지 업로드 가능합니다</li>
-          <li>• 각 이미지는 최대 5MB까지 업로드 가능합니다</li>
+          <li>• 각 이미지는 자동으로 압축되어 최적화됩니다</li>
           <li>• JPEG, PNG, WebP 형식을 지원합니다</li>
           <li>• 첫 번째 이미지가 대표 이미지로 설정됩니다</li>
-          <li>• "순서 관리" 탭에서 이미지 순서를 변경하고 대표 이미지를 설정할 수 있습니다</li>
+          <li>• "순서 관리" 탭에서 드래그하여 순서를 변경할 수 있습니다</li>
+          <li>• 이미지 회전, 캡션/태그 추가, 대체 텍스트 설정이 가능합니다</li>
+          <li>• 태그를 추가하면 나중에 검색할 때 유용합니다</li>
         </ul>
       </div>
     </div>

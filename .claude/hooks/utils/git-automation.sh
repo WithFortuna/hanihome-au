@@ -12,10 +12,10 @@ perform_git_automation() {
   local claude_prompt
   case "$branch_type" in
     feature)
-      claude_prompt="기능 개발 완료된 후에 git commit, git pr 작성과 관련해서 정의해놓은 정책/메모리를 참고하여 자동으로 깃허브 commit 후 pr 작성해서 레포지토리에 올려"
+      claude_prompt=" /git-automation-after-coding 이라는 custom command 실행해."
       ;;
     documentation)
-      claude_prompt="문서 작업 완료된 후에 git commit, git pr 작성과 관련해서 정의해놓은 정책/메모리를 참고하여 자동으로 깃허브 commit 후 pr 작성해서 레포지토리에 올려"
+      claude_prompt=" /git-autoation-after-documentation 이라는 custom command 실행해."
       ;;
     *)
       echo "Unknown branch type: $branch_type"

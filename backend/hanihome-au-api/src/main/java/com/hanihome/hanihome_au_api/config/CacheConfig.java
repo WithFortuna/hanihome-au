@@ -48,6 +48,12 @@ public class CacheConfig {
         
         // Nearby properties cache - 30 minutes TTL
         cacheConfigurations.put("nearbyProperties", defaultConfig.entryTtl(Duration.ofMinutes(30)));
+        
+        // User favorites cache - 1 hour TTL
+        cacheConfigurations.put("userFavorites", defaultConfig.entryTtl(Duration.ofHours(1)));
+        
+        // Favorite statistics cache - 2 hours TTL
+        cacheConfigurations.put("favoriteStats", defaultConfig.entryTtl(Duration.ofHours(2)));
 
         return RedisCacheManager.builder(redisConnectionFactory)
                 .cacheDefaults(defaultConfig)

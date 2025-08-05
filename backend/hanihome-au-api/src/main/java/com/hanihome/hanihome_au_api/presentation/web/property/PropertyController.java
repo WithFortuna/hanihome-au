@@ -5,6 +5,7 @@ import com.hanihome.hanihome_au_api.application.property.dto.PropertyResponseDto
 import com.hanihome.hanihome_au_api.application.property.service.PropertyApplicationService;
 import com.hanihome.hanihome_au_api.application.property.service.PropertySearchService;
 import com.hanihome.hanihome_au_api.application.property.service.PropertyAutocompleteService;
+import com.hanihome.hanihome_au_api.application.search.service.SearchHistoryService;
 import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
 import com.hanihome.hanihome_au_api.presentation.dto.CreatePropertyRequest;
 import com.hanihome.hanihome_au_api.presentation.dto.PropertySearchRequest;
@@ -45,6 +46,7 @@ public class PropertyController {
     private final PropertyApplicationService propertyApplicationService;
     private final PropertySearchService propertySearchService;
     private final PropertyAutocompleteService propertyAutocompleteService;
+    private final SearchHistoryService searchHistoryService;
 
     @PostMapping
     @PreAuthorize("@securityExpressionHandler.hasPermission('property:create')")
@@ -229,10 +231,25 @@ public class PropertyController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid search criteria")
     })
     public ResponseEntity<ApiResponse<PropertySearchResponse>> searchProperties(
-            @Valid @RequestBody PropertySearchRequest request) {
+            @Valid @RequestBody PropertySearchRequest request,
+            Authentication authentication) {
         try {
             log.info("Searching properties with criteria: {}", request);
             PropertySearchResponse response = propertySearchService.searchProperties(request);
+            
+            // Record search history for authenticated users
+            if (authentication != null && authentication.isAuthenticated()) {
+                try {
+                    Long userId = extractUserIdFromAuthentication(authentication);
+                    var searchHistoryCommand = searchHistoryService.fromSearchRequest(request, userId);
+                    searchHistoryService.recordSearch(searchHistoryCommand);
+                    log.debug("Recorded search history for user: {}", userId);
+                } catch (Exception e) {
+                    log.warn("Failed to record search history: {}", e.getMessage());
+                    // Don't fail the search if history recording fails
+                }
+            }
+            
             return ResponseEntity.ok(ApiResponse.success("Search completed successfully", response));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

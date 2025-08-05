@@ -57,6 +57,13 @@ dependencies {
 	// Swagger/OpenAPI 3
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	
+	// Firebase Cloud Messaging
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+	
+	// Email support
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'

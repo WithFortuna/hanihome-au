@@ -159,6 +159,12 @@ app:
     base-url: ${FILE_BASE_URL:http://localhost:8080/files}
     max-file-size: ${MAX_FILE_SIZE:5MB}
     allowed-extensions: ${ALLOWED_FILE_EXTENSIONS:jpg,jpeg,png,gif,webp}
+  mail:
+    enabled: ${MAIL_ENABLED:true}
+    from: ${MAIL_FROM:noreply@hanihome.com.au}
+    from-name: ${MAIL_FROM_NAME:HaniHome Australia}
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
 
 # Logging Configuration
 logging:

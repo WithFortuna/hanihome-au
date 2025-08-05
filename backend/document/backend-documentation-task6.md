@@ -1,921 +1,723 @@
-# Task 6: 매물 등록 및 관리 시스템 - Backend 지원 문서
+# Backend Documentation - Task 6
 
-## 프로젝트 개요
+## Overview
+- **Task**: 매물 등록 및 관리 인터페이스 구현 (Property Registration & Management Interface)
+- **Status**: Done ✅
+- **Category**: Backend Implementation
+- **Related Frontend**: [frontend-documentation-task6.md](../frontend/document/frontend-documentation-task6.md)
 
-Task 6의 백엔드 구현은 프론트엔드 매물 등록 및 관리 인터페이스를 지원하는 RESTful API와 비즈니스 로직을 제공합니다. Spring Boot 기반의 견고하고 확장 가능한 백엔드 아키텍처를 구축했습니다.
+## Description
+Backend implementation to support property registration and management interface for landlords and agents.
+임대인과 중개인을 위한 매물 등록 및 관리 인터페이스를 지원하는 백엔드 구현.
 
-### 구현 범위
-- **완료일**: 2025년 8월 3일
-- **API 엔드포인트**: 25+ 개 RESTful API
-- **데이터베이스 스키마**: 15+ 개 테이블
-- **비즈니스 로직**: DDD 패턴 기반 도메인 설계
+## Backend Implementation Details
 
-## Backend 지원 기능 현황
+### System Architecture
 
-### ✅ Task 6.1-6.2: 매물 등록 및 이미지 업로드 API
-**관련 파일**: 
-- `/src/main/java/com/hanihome/hanihome_au_api/presentation/web/property/PropertyController.java`
-- `/src/main/java/com/hanihome/hanihome_au_api/application/property/service/PropertyApplicationService.java`
-- `/src/main/java/com/hanihome/hanihome_au_api/service/FileStorageService.java`
+#### 1. Property Entity & Database Schema
+- **JPA Entity Design**: Comprehensive property data model
+- **Audit Trail**: CreatedDate, ModifiedDate, CreatedBy tracking
+- **Soft Delete**: Logical deletion with recovery capability
+- **Status Management**: ACTIVE, INACTIVE, DELETED states
+- **Relationship Mapping**: User-Property, Property-Image associations
 
-**구현된 API 엔드포인트:**
+#### 2. Image Management System
+- **AWS S3 Integration**: Direct upload with signed URLs
+- **Image Metadata Storage**: File names, sizes, upload timestamps
+- **Image Ordering**: Sortable image sequences
+- **Thumbnail Generation**: Multiple size variants
+- **CDN Integration**: CloudFront for optimized delivery
 
-#### 1. 매물 생성 API
-```http
-POST /api/v1/properties
-Content-Type: application/json
-Authorization: Bearer {jwt_token}
+#### 3. RESTful API Design
+- **CRUD Operations**: Full property lifecycle management
+- **Batch Operations**: Multi-property status updates
+- **Search & Filtering**: Advanced query capabilities
+- **Pagination**: Cursor-based pagination for performance
+- **Rate Limiting**: API protection and fair usage
 
-{
-  "title": "강남구 신축 아파트",
-  "description": "깨끗하고 현대적인 아파트입니다.",
-  "propertyType": "APARTMENT",
-  "rentalType": "MONTHLY",
-  "address": {
-    "roadAddress": "서울시 강남구 역삼동 123-45",
-    "jibunAddress": "서울시 강남구 역삼동 123-45",
-    "latitude": 37.5665,
-    "longitude": 126.9780
-  },
-  "pricing": {
-    "rent": 1200000,
-    "deposit": 10000000,
-    "managementFee": 50000
-  },
-  "specifications": {
-    "area": 84.5,
-    "rooms": 3,
-    "bathrooms": 2,
-    "floor": 5,
-    "totalFloors": 15
-  },
-  "availableFrom": "2025-08-15T00:00:00Z",
-  "options": ["주차가능", "엘리베이터", "보안시설"]
-}
-```
+## API Implementation
 
-**응답:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "prop_123456789",
-    "title": "강남구 신축 아파트",
-    "status": "PENDING_APPROVAL",
-    "createdAt": "2025-08-03T10:30:00Z",
-    "updatedAt": "2025-08-03T10:30:00Z"
-  },
-  "message": "매물이 성공적으로 등록되었습니다."
-}
-```
+### REST Endpoints
 
-#### 2. 이미지 업로드 API
-```http
-POST /api/v1/properties/{propertyId}/images
-Content-Type: multipart/form-data
-Authorization: Bearer {jwt_token}
+#### Property Management
+```java
+@RestController
+@RequestMapping("/api/properties")
+public class PropertyController {
 
-files: [image1.jpg, image2.jpg, ...]
-metadata: {
-  "images": [
-    {
-      "alt": "거실 전경",
-      "caption": "넓고 밝은 거실",
-      "tags": ["거실", "인테리어"],
-      "isThumbnail": true
+    // Create new property
+    @PostMapping
+    public ResponseEntity<PropertyResponse> createProperty(
+        @Valid @RequestBody CreatePropertyRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
     }
-  ]
+
+    // Get property list with filters
+    @GetMapping
+    public ResponseEntity<PagedResponse<PropertySummary>> getProperties(
+        @RequestParam(required = false) PropertyStatus status,
+        @RequestParam(required = false) String search,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Get single property details
+    @GetMapping("/{id}")
+    public ResponseEntity<PropertyDetailResponse> getProperty(
+        @PathVariable Long id,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Update property
+    @PutMapping("/{id}")
+    public ResponseEntity<PropertyResponse> updateProperty(
+        @PathVariable Long id,
+        @Valid @RequestBody UpdatePropertyRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Update property status
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Void> updatePropertyStatus(
+        @PathVariable Long id,
+        @RequestBody PropertyStatusRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Soft delete property
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProperty(
+        @PathVariable Long id,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
 }
 ```
 
-### ✅ Task 6.3: 이미지 관리 시스템 백엔드
+#### Image Management
+```java
+@RestController
+@RequestMapping("/api/properties/{propertyId}/images")
+public class PropertyImageController {
 
-#### PropertyImage 엔티티
+    // Generate signed URL for upload
+    @PostMapping("/upload-url")
+    public ResponseEntity<UploadUrlResponse> generateUploadUrl(
+        @PathVariable Long propertyId,
+        @RequestBody UploadUrlRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Confirm image upload
+    @PostMapping
+    public ResponseEntity<PropertyImageResponse> confirmImageUpload(
+        @PathVariable Long propertyId,
+        @RequestBody ConfirmUploadRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Reorder images
+    @PutMapping("/order")
+    public ResponseEntity<Void> reorderImages(
+        @PathVariable Long propertyId,
+        @RequestBody ReorderImagesRequest request,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+
+    // Delete image
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Void> deleteImage(
+        @PathVariable Long propertyId,
+        @PathVariable Long imageId,
+        Authentication auth
+    ) {
+        // Implementation details
+    }
+}
+```
+
+### Data Transfer Objects (DTOs)
+
+#### Request DTOs
+```java
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreatePropertyRequest {
+    @NotBlank
+    @Size(min = 5, max = 100)
+    private String title;
+    
+    @NotBlank
+    private String address;
+    
+    @NotNull
+    private PropertyType propertyType;
+    
+    @NotNull
+    @Positive
+    private BigDecimal price;
+    
+    @Min(0)
+    private Integer rooms;
+    
+    @Min(0)
+    private Integer bathrooms;
+    
+    @Positive
+    private Double area;
+    
+    private Integer floor;
+    
+    private List<String> amenities;
+    
+    private String description;
+    
+    @NotNull
+    private Double latitude;
+    
+    @NotNull
+    private Double longitude;
+}
+```
+
+#### Response DTOs
+```java
+@Data
+@Builder
+public class PropertyResponse {
+    private Long id;
+    private String title;
+    private String address;
+    private PropertyType propertyType;
+    private PropertyStatus status;
+    private BigDecimal price;
+    private Integer rooms;
+    private Integer bathrooms;
+    private Double area;
+    private Integer floor;
+    private List<String> amenities;
+    private String description;
+    private Double latitude;
+    private Double longitude;
+    private List<PropertyImageResponse> images;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String ownerName;
+}
+```
+
+## Database Design
+
+### Entity Relationships
+
+#### Property Entity
+```java
+@Entity
+@Table(name = "properties")
+@EntityListeners(AuditingEntityListener.class)
+public class Property {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false, length = 100)
+    private String title;
+    
+    @Column(nullable = false)
+    private String address;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PropertyType propertyType;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PropertyStatus status = PropertyStatus.ACTIVE;
+    
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal price;
+    
+    private Integer rooms;
+    private Integer bathrooms;
+    private Double area;
+    private Integer floor;
+    
+    @ElementCollection
+    @CollectionTable(name = "property_amenities")
+    private Set<String> amenities = new HashSet<>();
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
+    @Column(nullable = false)
+    private Double latitude;
+    
+    @Column(nullable = false)
+    private Double longitude;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
+    
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<PropertyImage> images = new ArrayList<>();
+    
+    @CreatedDate
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    
+    @CreatedBy
+    private String createdBy;
+    
+    @LastModifiedBy
+    private String lastModifiedBy;
+    
+    @Column(nullable = false)
+    private Boolean deleted = false;
+    
+    private LocalDateTime deletedAt;
+}
+```
+
+#### Property Image Entity
 ```java
 @Entity
 @Table(name = "property_images")
 public class PropertyImage {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id")
+    @JoinColumn(name = "property_id", nullable = false)
     private Property property;
     
-    @Column(name = "file_url", nullable = false)
-    private String fileUrl;
+    @Column(nullable = false)
+    private String filename;
     
-    @Column(name = "original_filename")
-    private String originalFilename;
+    @Column(nullable = false)
+    private String s3Key;
     
-    @Column(name = "file_size")
+    @Column(nullable = false)
+    private String contentType;
+    
+    @Column(nullable = false)
     private Long fileSize;
     
-    @Column(name = "mime_type")
-    private String mimeType;
+    @Column(nullable = false)
+    private Integer displayOrder;
     
-    @Column(name = "sort_order")
-    private Integer sortOrder = 0;
+    @Column(nullable = false)
+    private Boolean isPrimary = false;
     
-    @Column(name = "is_thumbnail")
-    private Boolean isThumbnail = false;
-    
-    @Column(name = "alt_text")
-    private String altText;
-    
-    @Column(name = "caption")
-    private String caption;
-    
-    @Column(name = "tags")
-    @Convert(converter = StringListConverter.class)
-    private List<String> tags = new ArrayList<>();
-    
-    @Column(name = "created_at")
-    private Instant createdAt;
-    
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @CreatedDate
+    private LocalDateTime uploadedAt;
 }
 ```
 
-#### 이미지 순서 변경 API
-```http
-PUT /api/v1/properties/{propertyId}/images/reorder
-Content-Type: application/json
-
-{
-  "imageOrders": [
-    { "imageId": "img_001", "sortOrder": 1 },
-    { "imageId": "img_002", "sortOrder": 2 },
-    { "imageId": "img_003", "sortOrder": 3 }
-  ]
-}
+### Database Indexes
+```sql
+-- Performance optimization indexes
+CREATE INDEX idx_property_owner_status ON properties(owner_id, status);
+CREATE INDEX idx_property_type_status ON properties(property_type, status);
+CREATE INDEX idx_property_location ON properties(latitude, longitude);
+CREATE INDEX idx_property_price_range ON properties(price, status);
+CREATE INDEX idx_property_created_at ON properties(created_at DESC);
 ```
 
-### ✅ Task 6.4: 주소 검색 및 지리 정보 API
+### Migration Scripts
+```sql
+-- V20250105_001__Create_Property_Tables.sql
+CREATE TABLE properties (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    address TEXT NOT NULL,
+    property_type VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    price DECIMAL(10,2) NOT NULL,
+    rooms INTEGER,
+    bathrooms INTEGER,
+    area DOUBLE PRECISION,
+    floor INTEGER,
+    description TEXT,
+    latitude DOUBLE PRECISION NOT NULL,
+    longitude DOUBLE PRECISION NOT NULL,
+    owner_id BIGINT NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(255),
+    last_modified_by VARCHAR(255),
+    deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMP
+);
 
-#### Address Value Object
+CREATE TABLE property_images (
+    id BIGSERIAL PRIMARY KEY,
+    property_id BIGINT NOT NULL REFERENCES properties(id),
+    filename VARCHAR(255) NOT NULL,
+    s3_key VARCHAR(500) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    display_order INTEGER NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE property_amenities (
+    property_id BIGINT NOT NULL REFERENCES properties(id),
+    amenities VARCHAR(100) NOT NULL,
+    PRIMARY KEY (property_id, amenities)
+);
+```
+
+## Business Logic Implementation
+
+### Service Layer Architecture
 ```java
-@Embeddable
-public class Address {
-    @Column(name = "road_address")
-    private String roadAddress;
+@Service
+@Transactional
+public class PropertyService {
     
-    @Column(name = "jibun_address")
-    private String jibunAddress;
+    private final PropertyRepository propertyRepository;
+    private final PropertyImageService imageService;
+    private final UserService userService;
+    private final AuditService auditService;
     
-    @Column(name = "postal_code")
-    private String postalCode;
-    
-    @Column(name = "latitude", precision = 10, scale = 8)
-    private BigDecimal latitude;
-    
-    @Column(name = "longitude", precision = 11, scale = 8)
-    private BigDecimal longitude;
-    
-    @Column(name = "administrative_area")
-    private String administrativeArea; // 시/도
-    
-    @Column(name = "sub_administrative_area")
-    private String subAdministrativeArea; // 구/군
-    
-    @Column(name = "locality")
-    private String locality; // 동/읍/면
-}
-```
-
-#### 주소 검증 API
-```http
-POST /api/v1/properties/validate-address
-Content-Type: application/json
-
-{
-  "address": "서울시 강남구 역삼동 123-45",
-  "coordinates": {
-    "latitude": 37.5665,
-    "longitude": 126.9780
-  }
-}
-```
-
-### ✅ Task 6.5: 매물 옵션 관리 시스템
-
-#### PropertyOption 엔티티
-```java
-@Entity
-@Table(name = "property_options")
-public class PropertyOption {
-    @Id
-    private String id;
-    
-    @Column(name = "category", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private OptionCategory category;
-    
-    @Column(name = "label", nullable = false)
-    private String label;
-    
-    @Column(name = "description")
-    private String description;
-    
-    @Column(name = "icon_name")
-    private String iconName;
-    
-    @Column(name = "has_pricing")
-    private Boolean hasPricing = false;
-    
-    @Column(name = "is_popular")
-    private Boolean isPopular = false;
-    
-    @Column(name = "tags")
-    @Convert(converter = StringListConverter.class)
-    private List<String> tags = new ArrayList<>();
-}
-
-public enum OptionCategory {
-    SECURITY,      // 보안시설
-    APPLIANCES,    // 생활가전
-    BUILDING,      // 건물시설
-    LOCATION,      // 주변환경
-    STRUCTURE,     // 공간구성
-    POLICY         // 특별조건
-}
-```
-
-#### 매물 옵션 설정 API
-```http
-PUT /api/v1/properties/{propertyId}/options
-Content-Type: application/json
-
-{
-  "selectedOptions": [
-    {
-      "optionId": "parking",
-      "monthlyFee": 50000,
-      "depositFee": 0,
-      "customNote": "지하 1층 주차장"
-    },
-    {
-      "optionId": "elevator",
-      "monthlyFee": 0,
-      "depositFee": 0
+    public PropertyResponse createProperty(CreatePropertyRequest request, String userId) {
+        // Validate user permissions
+        User owner = userService.findById(userId);
+        validatePropertyCreationPermission(owner);
+        
+        // Create property entity
+        Property property = Property.builder()
+            .title(request.getTitle())
+            .address(request.getAddress())
+            .propertyType(request.getPropertyType())
+            .price(request.getPrice())
+            .rooms(request.getRooms())
+            .bathrooms(request.getBathrooms())
+            .area(request.getArea())
+            .floor(request.getFloor())
+            .amenities(new HashSet<>(request.getAmenities()))
+            .description(request.getDescription())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .owner(owner)
+            .status(PropertyStatus.ACTIVE)
+            .build();
+        
+        Property saved = propertyRepository.save(property);
+        auditService.logPropertyCreation(saved);
+        
+        return mapToResponse(saved);
     }
-  ]
+    
+    public PagedResponse<PropertySummary> getProperties(PropertySearchCriteria criteria, String userId) {
+        // Build dynamic query with QueryDSL
+        BooleanBuilder predicate = buildSearchPredicate(criteria, userId);
+        
+        Pageable pageable = PageRequest.of(
+            criteria.getPage(), 
+            criteria.getSize(),
+            criteria.getSortDirection(),
+            criteria.getSortBy()
+        );
+        
+        Page<Property> properties = propertyRepository.findAll(predicate, pageable);
+        
+        return PagedResponse.<PropertySummary>builder()
+            .content(properties.getContent().stream()
+                .map(this::mapToSummary)
+                .collect(Collectors.toList()))
+            .page(properties.getNumber())
+            .size(properties.getSize())
+            .totalElements(properties.getTotalElements())
+            .totalPages(properties.getTotalPages())
+            .build();
+    }
 }
 ```
 
-### ✅ Task 6.6: 매물 관리 대시보드 API
-
-#### 대시보드 통계 API
-```http
-GET /api/v1/properties/dashboard/stats
-Authorization: Bearer {jwt_token}
-```
-
-**응답:**
-```json
-{
-  "success": true,
-  "data": {
-    "totalProperties": 150,
-    "activeProperties": 120,
-    "inactiveProperties": 25,
-    "pendingApproval": 5,
-    "totalViews": 15420,
-    "totalInquiries": 89,
-    "thisMonthRegistrations": 12,
-    "averageViewsPerProperty": 102.8,
-    "topPerformingProperties": [
-      {
-        "id": "prop_001",
-        "title": "강남구 신축 아파트",
-        "views": 450,
-        "inquiries": 12
-      }
-    ]
-  }
-}
-```
-
-#### 매물 필터링 및 검색 API
-```http
-GET /api/v1/properties/search
-Query Parameters:
-- search: 검색어 (제목, 주소)
-- propertyType: APARTMENT, VILLA, OFFICETEL, etc.
-- rentalType: MONTHLY, JEONSE, SALE
-- status: ACTIVE, INACTIVE, PENDING_APPROVAL, REJECTED
-- minRent: 최소 임대료
-- maxRent: 최대 임대료
-- area: 면적 범위
-- rooms: 방 개수
-- sortBy: createdAt, updatedAt, views, inquiries, rent
-- sortOrder: asc, desc
-- page: 페이지 번호 (기본값: 0)
-- size: 페이지 크기 (기본값: 20)
-```
-
-#### QueryDSL 동적 검색 구현
+### Repository Layer with QueryDSL
 ```java
 @Repository
 public class PropertyRepositoryImpl implements PropertyRepositoryCustom {
     
-    @Autowired
-    private JPAQueryFactory queryFactory;
+    private final JPAQueryFactory queryFactory;
     
     @Override
-    public Page<Property> searchProperties(PropertySearchCriteria criteria, Pageable pageable) {
+    public Page<Property> findByCriteria(PropertySearchCriteria criteria, Pageable pageable) {
         QProperty property = QProperty.property;
+        QUser owner = QUser.user;
         
-        BooleanBuilder builder = new BooleanBuilder();
+        BooleanBuilder predicate = new BooleanBuilder();
         
-        // 검색어 필터링
+        // Status filter
+        if (criteria.getStatus() != null) {
+            predicate.and(property.status.eq(criteria.getStatus()));
+        }
+        
+        // Search text filter
         if (StringUtils.hasText(criteria.getSearch())) {
-            builder.and(
+            predicate.and(
                 property.title.containsIgnoreCase(criteria.getSearch())
-                .or(property.address.roadAddress.containsIgnoreCase(criteria.getSearch()))
+                .or(property.address.containsIgnoreCase(criteria.getSearch()))
+                .or(property.description.containsIgnoreCase(criteria.getSearch()))
             );
         }
         
-        // 매물 타입 필터링
-        if (criteria.getPropertyType() != null) {
-            builder.and(property.propertyType.eq(criteria.getPropertyType()));
+        // Price range filter
+        if (criteria.getMinPrice() != null) {
+            predicate.and(property.price.goe(criteria.getMinPrice()));
+        }
+        if (criteria.getMaxPrice() != null) {
+            predicate.and(property.price.loe(criteria.getMaxPrice()));
         }
         
-        // 가격 범위 필터링
-        if (criteria.getMinRent() != null) {
-            builder.and(property.rent.goe(criteria.getMinRent()));
-        }
-        if (criteria.getMaxRent() != null) {
-            builder.and(property.rent.loe(criteria.getMaxRent()));
-        }
-        
-        // 지리적 범위 검색 (반경 기반)
+        // Location-based filter (distance)
         if (criteria.getLatitude() != null && criteria.getLongitude() != null && criteria.getRadius() != null) {
-            builder.and(
+            // Use spatial query for distance calculation
+            predicate.and(
                 Expressions.numberTemplate(Double.class,
-                    "ST_Distance_Sphere(POINT({0}, {1}), POINT({2}, {3}))",
+                    "ST_DWithin(ST_MakePoint({0}, {1}), ST_MakePoint({2}, {3}), {4})",
                     criteria.getLongitude(), criteria.getLatitude(),
-                    property.address.longitude, property.address.latitude
-                ).loe(criteria.getRadius())
+                    property.longitude, property.latitude,
+                    criteria.getRadius() * 1000) // Convert km to meters
+                ).gt(0)
             );
         }
         
-        // 쿼리 실행
-        JPAQuery<Property> query = queryFactory
+        // Soft delete filter
+        predicate.and(property.deleted.eq(false));
+        
+        List<Property> results = queryFactory
             .selectFrom(property)
-            .where(builder)
-            .orderBy(getOrderSpecifier(criteria.getSortBy(), criteria.getSortOrder()))
+            .leftJoin(property.owner, owner).fetchJoin()
+            .where(predicate)
             .offset(pageable.getOffset())
-            .limit(pageable.getPageSize());
-            
-        List<Property> results = query.fetch();
+            .limit(pageable.getPageSize())
+            .orderBy(getOrderSpecifier(pageable.getSort()))
+            .fetch();
+        
         long total = queryFactory
             .selectFrom(property)
-            .where(builder)
+            .where(predicate)
             .fetchCount();
-            
+        
         return new PageImpl<>(results, pageable, total);
     }
 }
 ```
 
-### ✅ Task 6.7: 매물 수정 및 상태 관리
+## Security Implementation
 
-#### 매물 상태 변경 API
-```http
-PUT /api/v1/properties/{propertyId}/status
-Content-Type: application/json
-
-{
-  "status": "ACTIVE",
-  "reason": "검토 완료",
-  "adminNotes": "모든 요구사항 충족"
-}
-```
-
-#### PropertyStatusHistory 엔티티
+### Authorization & Access Control
 ```java
-@Entity
-@Table(name = "property_status_history")
-public class PropertyStatusHistory {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+@Component
+public class PropertySecurityService {
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id")
-    private Property property;
-    
-    @Column(name = "previous_status")
-    @Enumerated(EnumType.STRING)
-    private PropertyStatus previousStatus;
-    
-    @Column(name = "new_status")
-    @Enumerated(EnumType.STRING)
-    private PropertyStatus newStatus;
-    
-    @Column(name = "changed_by")
-    private String changedBy;
-    
-    @Column(name = "change_reason")
-    private String changeReason;
-    
-    @Column(name = "admin_notes")
-    private String adminNotes;
-    
-    @Column(name = "changed_at")
-    private Instant changedAt;
-}
-```
-
-#### 매물 수정 API
-```http
-PUT /api/v1/properties/{propertyId}
-Content-Type: application/json
-
-{
-  "title": "강남구 신축 아파트 (수정됨)",
-  "description": "업데이트된 설명",
-  "rent": 1300000,
-  "deposit": 12000000,
-  "availableFrom": "2025-09-01T00:00:00Z",
-  "options": ["주차가능", "엘리베이터", "보안시설", "체육시설"]
-}
-```
-
-### ✅ Task 6.8: 매물 삭제 및 데이터 관리
-
-#### 소프트 삭제 구현
-```java
-@Entity
-@Table(name = "properties")
-@SQLDelete(sql = "UPDATE properties SET deleted_at = NOW() WHERE id = ?")
-@Where(clause = "deleted_at IS NULL")
-public class Property extends AggregateRoot<PropertyId> {
-    
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-    
-    @Column(name = "deleted_by")
-    private String deletedBy;
-    
-    @Column(name = "deletion_reason")
-    private String deletionReason;
-    
-    public void softDelete(String deletedBy, String reason) {
-        this.deletedAt = Instant.now();
-        this.deletedBy = deletedBy;
-        this.deletionReason = reason;
-    }
-    
-    public void restore() {
-        this.deletedAt = null;
-        this.deletedBy = null;
-        this.deletionReason = null;
-    }
-}
-```
-
-#### 휴지통 관리 API
-```http
-# 삭제된 매물 목록 조회
-GET /api/v1/properties/trash
-Authorization: Bearer {jwt_token}
-
-# 매물 복구
-POST /api/v1/properties/{propertyId}/restore
-Content-Type: application/json
-
-{
-  "reason": "사용자 요청에 의한 복구"
-}
-
-# 영구 삭제
-DELETE /api/v1/properties/{propertyId}/permanent
-Content-Type: application/json
-
-{
-  "reason": "30일 경과 후 자동 삭제",
-  "confirmDelete": true
-}
-```
-
-## 데이터베이스 스키마 설계
-
-### 1. Property 테이블 (매물 정보)
-```sql
-CREATE TABLE properties (
-    id VARCHAR(255) PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    property_type VARCHAR(50) NOT NULL,
-    rental_type VARCHAR(50) NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'PENDING_APPROVAL',
-    
-    -- 주소 정보
-    road_address VARCHAR(500),
-    jibun_address VARCHAR(500),
-    postal_code VARCHAR(10),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
-    administrative_area VARCHAR(100),
-    sub_administrative_area VARCHAR(100),
-    locality VARCHAR(100),
-    
-    -- 가격 정보
-    rent BIGINT NOT NULL,
-    deposit BIGINT,
-    management_fee BIGINT,
-    
-    -- 매물 사양
-    area DECIMAL(8,2),
-    rooms INTEGER,
-    bathrooms INTEGER,
-    bedrooms INTEGER,
-    floor INTEGER,
-    total_floors INTEGER,
-    
-    -- 기타 정보
-    available_from TIMESTAMP,
-    contact_name VARCHAR(100),
-    contact_phone VARCHAR(20),
-    options JSON,
-    
-    -- 메타데이터
-    user_id VARCHAR(255) NOT NULL,
-    views INTEGER DEFAULT 0,
-    inquiries INTEGER DEFAULT 0,
-    favorites INTEGER DEFAULT 0,
-    
-    -- 관리 정보
-    admin_notes TEXT,
-    verification_status VARCHAR(50) DEFAULT 'PENDING',
-    featured BOOLEAN DEFAULT FALSE,
-    
-    -- 타임스탬프
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-    deleted_by VARCHAR(255) NULL,
-    deletion_reason TEXT NULL,
-    
-    -- 인덱스
-    INDEX idx_property_type_status (property_type, status),
-    INDEX idx_location (latitude, longitude),
-    INDEX idx_rent_range (rent, deposit),
-    INDEX idx_created_at (created_at),
-    INDEX idx_user_properties (user_id, status),
-    SPATIAL INDEX idx_location_spatial (latitude, longitude),
-    
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-```
-
-### 2. PropertyImage 테이블 (매물 이미지)
-```sql
-CREATE TABLE property_images (
-    id VARCHAR(255) PRIMARY KEY,
-    property_id VARCHAR(255) NOT NULL,
-    file_url VARCHAR(1000) NOT NULL,
-    original_filename VARCHAR(255),
-    file_size BIGINT,
-    mime_type VARCHAR(100),
-    
-    -- 이미지 메타데이터
-    sort_order INTEGER DEFAULT 0,
-    is_thumbnail BOOLEAN DEFAULT FALSE,
-    alt_text VARCHAR(255),
-    caption TEXT,
-    tags JSON,
-    
-    -- 이미지 속성
-    width INTEGER,
-    height INTEGER,
-    compression_ratio DECIMAL(5,2),
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_property_images (property_id, sort_order),
-    INDEX idx_thumbnail (property_id, is_thumbnail),
-    
-    FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
-);
-```
-
-### 3. PropertyOptions 테이블 (매물 옵션)
-```sql
-CREATE TABLE property_options (
-    id VARCHAR(100) PRIMARY KEY,
-    category VARCHAR(50) NOT NULL,
-    label VARCHAR(100) NOT NULL,
-    description TEXT,
-    icon_name VARCHAR(100),
-    has_pricing BOOLEAN DEFAULT FALSE,
-    is_popular BOOLEAN DEFAULT FALSE,
-    tags JSON,
-    display_order INTEGER DEFAULT 0,
-    
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    INDEX idx_category (category),
-    INDEX idx_popular (is_popular, display_order)
-);
-```
-
-## 비즈니스 로직 및 도메인 설계
-
-### 1. Property Domain Entity
-```java
-@Entity
-public class Property extends AggregateRoot<PropertyId> {
-    
-    private PropertyId id;
-    private String title;
-    private String description;
-    private PropertyType propertyType;
-    private RentalType rentalType;
-    private PropertyStatus status;
-    private Address address;
-    private Money rent;
-    private Money deposit;
-    private PropertySpecs specifications;
-    private List<String> options;
-    private UserId ownerId;
-    
-    // Domain Events
-    public void changeStatus(PropertyStatus newStatus, String reason, String changedBy) {
-        PropertyStatus oldStatus = this.status;
-        this.status = newStatus;
+    public boolean canViewProperty(Long propertyId, String userId) {
+        Property property = propertyRepository.findById(propertyId)
+            .orElseThrow(() -> new PropertyNotFoundException(propertyId));
         
-        // 도메인 이벤트 발행
-        addDomainEvent(new PropertyStatusChangedEvent(
-            this.id, oldStatus, newStatus, reason, changedBy
-        ));
-    }
-    
-    public void updateRent(Money newRent, String reason) {
-        Money oldRent = this.rent;
-        this.rent = newRent;
+        User user = userService.findById(userId);
         
-        addDomainEvent(new PropertyPriceChangedEvent(
-            this.id, oldRent, newRent, reason
-        ));
+        // Property owner can always view
+        if (property.getOwner().getId().equals(user.getId())) {
+            return true;
+        }
+        
+        // Admin can view all properties
+        if (user.hasRole(Role.ADMIN)) {
+            return true;
+        }
+        
+        // Public properties are viewable by tenants
+        if (property.getStatus() == PropertyStatus.ACTIVE && user.hasRole(Role.TENANT)) {
+            return true;
+        }
+        
+        return false;
     }
     
-    // Business Rules
-    public boolean canBeActivated() {
-        return hasRequiredInformation() && 
-               hasAtLeastOneImage() && 
-               isAddressVerified();
-    }
-    
-    private boolean hasRequiredInformation() {
-        return title != null && !title.trim().isEmpty() &&
-               description != null && !description.trim().isEmpty() &&
-               rent != null && rent.isPositive() &&
-               specifications != null && specifications.isValid();
+    public boolean canModifyProperty(Long propertyId, String userId) {
+        Property property = propertyRepository.findById(propertyId)
+            .orElseThrow(() -> new PropertyNotFoundException(propertyId));
+        
+        User user = userService.findById(userId);
+        
+        // Only owner and admin can modify
+        return property.getOwner().getId().equals(user.getId()) || user.hasRole(Role.ADMIN);
     }
 }
 ```
 
-### 2. Property Domain Service
+### Input Validation
+```java
+@Validated
+@Service
+public class PropertyValidationService {
+    
+    public void validatePropertyCreation(CreatePropertyRequest request) {
+        // Address validation
+        if (!isValidAddress(request.getAddress())) {
+            throw new ValidationException("Invalid address format");
+        }
+        
+        // Coordinate validation
+        if (!isValidCoordinates(request.getLatitude(), request.getLongitude())) {
+            throw new ValidationException("Invalid coordinates");
+        }
+        
+        // Price validation
+        if (request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("Price must be positive");
+        }
+        
+        // Amenities validation
+        if (request.getAmenities() != null) {
+            validateAmenities(request.getAmenities());
+        }
+    }
+    
+    private boolean isValidAddress(String address) {
+        // Korean address validation logic
+        return address != null && address.trim().length() >= 10;
+    }
+    
+    private boolean isValidCoordinates(Double lat, Double lng) {
+        // South Korea coordinate bounds
+        return lat != null && lng != null &&
+               lat >= 33.0 && lat <= 38.9 &&
+               lng >= 125.0 && lng <= 131.9;
+    }
+}
+```
+
+## AWS Integration
+
+### S3 Configuration
+```java
+@Configuration
+public class S3Config {
+    
+    @Value("${aws.s3.bucket.property-images}")
+    private String propertyImagesBucket;
+    
+    @Bean
+    public AmazonS3 amazonS3() {
+        return AmazonS3ClientBuilder.standard()
+            .withRegion(Regions.AP_NORTHEAST_2)
+            .withCredentials(new DefaultAWSCredentialsProviderChain())
+            .build();
+    }
+    
+    @Bean
+    public S3PresignedUrlService s3PresignedUrlService() {
+        return new S3PresignedUrlService(amazonS3(), propertyImagesBucket);
+    }
+}
+```
+
+### Image Upload Service
 ```java
 @Service
-public class PropertyDomainService {
+public class PropertyImageService {
     
-    public void validatePropertyCreation(Property property) {
-        // 비즈니스 규칙 검증
-        if (property.getRent().isGreaterThan(Money.of(10_000_000))) {
-            throw new PropertyException("임대료가 너무 높습니다.");
-        }
+    private final S3PresignedUrlService s3Service;
+    private final PropertyImageRepository imageRepository;
+    
+    public UploadUrlResponse generateUploadUrl(Long propertyId, UploadUrlRequest request) {
+        String key = generateS3Key(propertyId, request.getFilename());
         
-        if (property.getDeposit().isGreaterThan(property.getRent().multiply(24))) {
-            throw new PropertyException("보증금이 월세의 24배를 초과할 수 없습니다.");
-        }
+        URL presignedUrl = s3Service.generatePresignedUploadUrl(
+            key,
+            request.getContentType(),
+            Duration.ofMinutes(15)
+        );
         
-        // 중복 매물 검사
-        if (isDuplicateProperty(property)) {
-            throw new PropertyException("유사한 매물이 이미 등록되어 있습니다.");
-        }
+        return UploadUrlResponse.builder()
+            .uploadUrl(presignedUrl.toString())
+            .key(key)
+            .expiresAt(Instant.now().plus(Duration.ofMinutes(15)))
+            .build();
     }
     
-    public Money calculateTotalMonthlyCost(Property property) {
-        Money totalCost = property.getRent();
-        
-        if (property.getManagementFee() != null) {
-            totalCost = totalCost.add(property.getManagementFee());
+    public PropertyImageResponse confirmUpload(Long propertyId, ConfirmUploadRequest request) {
+        // Verify file exists in S3
+        if (!s3Service.objectExists(request.getKey())) {
+            throw new ImageUploadException("File not found in S3");
         }
         
-        // 옵션별 추가 비용 계산
-        for (String optionId : property.getOptions()) {
-            PropertyOption option = propertyOptionRepository.findById(optionId);
-            if (option != null && option.hasPricing()) {
-                totalCost = totalCost.add(option.getMonthlyFee());
-            }
-        }
+        // Get file metadata from S3
+        S3ObjectMetadata metadata = s3Service.getObjectMetadata(request.getKey());
         
-        return totalCost;
-    }
-}
-```
-
-### 3. Application Service Layer
-```java
-@Service
-@Transactional
-public class PropertyApplicationService {
-    
-    private final PropertyRepository propertyRepository;
-    private final PropertyDomainService propertyDomainService;
-    private final FileStorageService fileStorageService;
-    private final DomainEventPublisher eventPublisher;
-    
-    public PropertyResponseDto createProperty(CreatePropertyCommand command) {
-        // 1. 명령 검증
-        validateCreatePropertyCommand(command);
-        
-        // 2. 도메인 객체 생성
-        Property property = Property.builder()
-            .title(command.getTitle())
-            .description(command.getDescription())
-            .propertyType(command.getPropertyType())
-            .rentalType(command.getRentalType())
-            .address(command.getAddress())
-            .rent(Money.of(command.getRent()))
-            .deposit(Money.of(command.getDeposit()))
-            .specifications(command.getSpecifications())
-            .options(command.getOptions())
-            .ownerId(UserId.of(command.getUserId()))
+        // Save image record
+        PropertyImage image = PropertyImage.builder()
+            .property(propertyRepository.getReferenceById(propertyId))
+            .filename(request.getFilename())
+            .s3Key(request.getKey())
+            .contentType(metadata.getContentType())
+            .fileSize(metadata.getContentLength())
+            .displayOrder(getNextDisplayOrder(propertyId))
+            .isPrimary(isFirstImage(propertyId))
             .build();
         
-        // 3. 비즈니스 규칙 검증
-        propertyDomainService.validatePropertyCreation(property);
+        PropertyImage saved = imageRepository.save(image);
         
-        // 4. 저장
-        Property savedProperty = propertyRepository.save(property);
-        
-        // 5. 도메인 이벤트 발행
-        eventPublisher.publishEvents(savedProperty.getDomainEvents());
-        
-        // 6. 응답 DTO 변환
-        return PropertyResponseDto.from(savedProperty);
-    }
-    
-    @EventListener
-    public void handlePropertyCreated(PropertyCreatedEvent event) {
-        // 매물 생성 후 후속 처리
-        // - 알림 발송
-        // - 검색 인덱스 업데이트
-        // - 통계 정보 갱신
+        return mapToImageResponse(saved);
     }
 }
 ```
 
-## 파일 저장 및 이미지 처리
+## Performance Optimization
 
-### 1. FileStorageService 구현
-```java
-@Service
-public class FileStorageService {
-    
-    @Value("${aws.s3.bucket.name}")
-    private String bucketName;
-    
-    @Value("${file.upload.dir}")
-    private String uploadDir;
-    
-    private final AmazonS3 s3Client;
-    
-    public List<String> uploadPropertyImages(String propertyId, List<MultipartFile> files) {
-        List<String> uploadedUrls = new ArrayList<>();
-        
-        for (int i = 0; i < files.size(); i++) {
-            MultipartFile file = files.get(i);
-            
-            // 파일 검증
-            validateImageFile(file);
-            
-            // 파일명 생성
-            String fileName = generateFileName(propertyId, i, file.getOriginalFilename());
-            String s3Key = "properties/" + propertyId + "/images/" + fileName;
-            
-            try {
-                // S3 업로드
-                ObjectMetadata metadata = new ObjectMetadata();
-                metadata.setContentType(file.getContentType());
-                metadata.setContentLength(file.getSize());
-                
-                s3Client.putObject(new PutObjectRequest(
-                    bucketName, s3Key, file.getInputStream(), metadata
-                ));
-                
-                // URL 생성
-                String fileUrl = s3Client.getUrl(bucketName, s3Key).toString();
-                uploadedUrls.add(fileUrl);
-                
-            } catch (Exception e) {
-                log.error("Failed to upload file: " + fileName, e);
-                throw new FileStorageException("파일 업로드에 실패했습니다: " + fileName);
-            }
-        }
-        
-        return uploadedUrls;
-    }
-    
-    private void validateImageFile(MultipartFile file) {
-        // 파일 크기 검증 (최대 5MB)
-        if (file.getSize() > 5 * 1024 * 1024) {
-            throw new FileStorageException("파일 크기는 5MB를 초과할 수 없습니다.");
-        }
-        
-        // MIME 타입 검증
-        String contentType = file.getContentType();
-        if (!Arrays.asList("image/jpeg", "image/png", "image/webp").contains(contentType)) {
-            throw new FileStorageException("지원하지 않는 파일 형식입니다.");
-        }
-        
-        // 파일 확장자 검증
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !hasValidImageExtension(originalFilename)) {
-            throw new FileStorageException("올바른 이미지 파일이 아닙니다.");
-        }
-    }
-}
-```
-
-### 2. 이미지 리사이징 및 최적화
-```java
-@Service
-public class ImageProcessingService {
-    
-    public byte[] resizeImage(byte[] imageData, int maxWidth, int maxHeight) {
-        try {
-            BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(imageData));
-            
-            // 비율 계산
-            double widthRatio = (double) maxWidth / originalImage.getWidth();
-            double heightRatio = (double) maxHeight / originalImage.getHeight();
-            double ratio = Math.min(widthRatio, heightRatio);
-            
-            int newWidth = (int) (originalImage.getWidth() * ratio);
-            int newHeight = (int) (originalImage.getHeight() * ratio);
-            
-            // 리사이징
-            BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-            Graphics2D graphics = resizedImage.createGraphics();
-            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            graphics.drawImage(originalImage, 0, 0, newWidth, newHeight, null);
-            graphics.dispose();
-            
-            // JPEG로 변환
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(resizedImage, "jpg", outputStream);
-            
-            return outputStream.toByteArray();
-            
-        } catch (Exception e) {
-            throw new ImageProcessingException("이미지 리사이징에 실패했습니다.", e);
-        }
-    }
-    
-    public List<ImageSize> generateThumbnails(byte[] imageData) {
-        List<ImageSize> thumbnails = new ArrayList<>();
-        
-        // 다양한 크기의 썸네일 생성
-        int[][] sizes = {{150, 150}, {300, 300}, {600, 400}, {1200, 800}};
-        
-        for (int[] size : sizes) {
-            byte[] thumbnail = resizeImage(imageData, size[0], size[1]);
-            thumbnails.add(new ImageSize(size[0], size[1], thumbnail));
-        }
-        
-        return thumbnails;
-    }
-}
-```
-
-## 성능 최적화 및 캐싱
-
-### 1. Redis 캐싱 설정
+### Caching Strategy
 ```java
 @Configuration
 @EnableCaching
 public class CacheConfig {
     
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofMinutes(10))
-            .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
+    public CacheManager cacheManager() {
+        RedisCacheManager.Builder builder = RedisCacheManager
+            .RedisCacheManagerBuilder
+            .fromConnectionFactory(redisConnectionFactory())
+            .cacheDefaults(cacheConfiguration());
         
-        return RedisCacheManager.builder(redisConnectionFactory)
-            .cacheDefaults(config)
-            .build();
+        return builder.build();
+    }
+    
+    private RedisCacheConfiguration cacheConfiguration() {
+        return RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.ofMinutes(30))
+            .serializeKeysWith(RedisSerializationContext.SerializationPair
+                .fromSerializer(new StringRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair
+                .fromSerializer(new GenericJackson2JsonRedisSerializer()));
     }
 }
 
@@ -923,324 +725,234 @@ public class CacheConfig {
 public class PropertyService {
     
     @Cacheable(value = "properties", key = "#propertyId")
-    public PropertyResponseDto getProperty(String propertyId) {
-        Property property = propertyRepository.findById(PropertyId.of(propertyId))
-            .orElseThrow(() -> new PropertyNotFoundException("매물을 찾을 수 없습니다: " + propertyId));
-        
-        return PropertyResponseDto.from(property);
+    public PropertyResponse getProperty(Long propertyId) {
+        // Implementation
     }
     
     @CacheEvict(value = "properties", key = "#propertyId")
-    public void updateProperty(String propertyId, UpdatePropertyCommand command) {
-        // 매물 업데이트 로직
+    public PropertyResponse updateProperty(Long propertyId, UpdatePropertyRequest request) {
+        // Implementation
     }
 }
 ```
 
-### 2. 데이터베이스 최적화
-```sql
--- 복합 인덱스 최적화
-CREATE INDEX idx_property_search ON properties (status, property_type, rent, area);
-CREATE INDEX idx_property_location ON properties (latitude, longitude) USING SPATIAL;
-CREATE INDEX idx_property_created_desc ON properties (created_at DESC);
-
--- 쿼리 최적화를 위한 뷰
-CREATE VIEW property_summary_view AS
-SELECT 
-    p.id,
-    p.title,
-    p.property_type,
-    p.rental_type,
-    p.status,
-    p.rent,
-    p.deposit,
-    p.area,
-    p.rooms,
-    p.address,
-    p.created_at,
-    p.views,
-    p.inquiries,
-    p.favorites,
-    pi.thumbnail_url
-FROM properties p
-LEFT JOIN (
-    SELECT 
-        property_id,
-        file_url as thumbnail_url,
-        ROW_NUMBER() OVER (PARTITION BY property_id ORDER BY is_thumbnail DESC, sort_order ASC) as rn
-    FROM property_images
-) pi ON p.id = pi.property_id AND pi.rn = 1
-WHERE p.deleted_at IS NULL;
-```
-
-### 3. 비동기 처리
+### Database Query Optimization
 ```java
-@Service
-public class AsyncPropertyService {
+// N+1 query prevention with fetch joins
+@Repository
+public interface PropertyRepository extends JpaRepository<Property, Long> {
     
-    @Async("taskExecutor")
-    public CompletableFuture<Void> processPropertyImages(String propertyId, List<MultipartFile> files) {
-        try {
-            List<String> urls = fileStorageService.uploadPropertyImages(propertyId, files);
-            
-            for (int i = 0; i < urls.size(); i++) {
-                PropertyImage image = PropertyImage.builder()
-                    .propertyId(PropertyId.of(propertyId))
-                    .fileUrl(urls.get(i))
-                    .sortOrder(i)
-                    .build();
-                
-                propertyImageRepository.save(image);
-                
-                // 썸네일 생성 (비동기)
-                generateThumbnailAsync(image);
-            }
-            
-            return CompletableFuture.completedFuture(null);
-            
-        } catch (Exception e) {
-            log.error("이미지 처리 중 오류 발생", e);
-            throw new CompletionException(e);
-        }
-    }
+    @Query("SELECT p FROM Property p " +
+           "LEFT JOIN FETCH p.images i " +
+           "LEFT JOIN FETCH p.owner o " +
+           "WHERE p.id = :id AND p.deleted = false")
+    Optional<Property> findByIdWithImagesAndOwner(@Param("id") Long id);
     
-    @Async
-    public void generateThumbnailAsync(PropertyImage image) {
-        // 썸네일 생성 로직
-    }
+    @Query("SELECT p FROM Property p " +
+           "LEFT JOIN FETCH p.owner " +
+           "WHERE p.status = :status AND p.deleted = false " +
+           "ORDER BY p.createdAt DESC")
+    List<Property> findActivePropertiesWithOwner(@Param("status") PropertyStatus status);
 }
 ```
 
-## API 보안 및 권한 관리
+## Monitoring & Logging
 
-### 1. JWT 기반 인증
-```java
-@Component
-public class JwtTokenProvider {
-    
-    @Value("${jwt.secret}")
-    private String secretKey;
-    
-    @Value("${jwt.expiration}")
-    private long expiration;
-    
-    public String generateToken(UserPrincipal userPrincipal) {
-        Date expiryDate = new Date(System.currentTimeMillis() + expiration);
-        
-        return Jwts.builder()
-            .setSubject(userPrincipal.getId())
-            .claim("role", userPrincipal.getRole())
-            .claim("permissions", userPrincipal.getPermissions())
-            .setIssuedAt(new Date())
-            .setExpiration(expiryDate)
-            .signWith(SignatureAlgorithm.HS512, secretKey)
-            .compact();
-    }
-    
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
-            return true;
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
-    }
-}
-```
-
-### 2. 권한 기반 접근 제어
-```java
-@RestController
-@RequestMapping("/api/v1/properties")
-@PreAuthorize("hasRole('USER')")
-public class PropertyController {
-    
-    @PostMapping
-    @PreAuthorize("hasPermission(null, 'PROPERTY_CREATE')")
-    public ResponseEntity<PropertyResponseDto> createProperty(
-        @Valid @RequestBody CreatePropertyRequest request,
-        Authentication authentication
-    ) {
-        UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
-        
-        CreatePropertyCommand command = CreatePropertyCommand.builder()
-            .title(request.getTitle())
-            .description(request.getDescription())
-            .userId(user.getId())
-            .build();
-        
-        PropertyResponseDto response = propertyApplicationService.createProperty(command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-    
-    @PutMapping("/{propertyId}")
-    @PreAuthorize("hasPermission(#propertyId, 'Property', 'EDIT')")
-    public ResponseEntity<PropertyResponseDto> updateProperty(
-        @PathVariable String propertyId,
-        @Valid @RequestBody UpdatePropertyRequest request,
-        Authentication authentication
-    ) {
-        // 매물 수정 로직
-    }
-}
-```
-
-### 3. 커스텀 권한 평가자
-```java
-@Component
-public class CustomPermissionEvaluator implements PermissionEvaluator {
-    
-    @Autowired
-    private PropertyRepository propertyRepository;
-    
-    @Override
-    public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return false;
-        }
-        
-        UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
-        String permissionString = permission.toString();
-        
-        // 관리자는 모든 권한
-        if (user.hasRole("ADMIN")) {
-            return true;
-        }
-        
-        // 매물 생성 권한
-        if ("PROPERTY_CREATE".equals(permissionString)) {
-            return user.hasRole("LANDLORD") || user.hasRole("AGENT");
-        }
-        
-        return false;
-    }
-    
-    @Override
-    public boolean hasPermission(Authentication authentication, Serializable targetId, String targetType, Object permission) {
-        if (!"Property".equals(targetType)) {
-            return false;
-        }
-        
-        UserPrincipal user = (UserPrincipal) authentication.getPrincipal();
-        String propertyId = targetId.toString();
-        
-        // 매물 소유자 확인
-        Property property = propertyRepository.findById(PropertyId.of(propertyId))
-            .orElse(null);
-            
-        if (property != null && property.getOwnerId().getValue().equals(user.getId())) {
-            return true;
-        }
-        
-        return user.hasRole("ADMIN");
-    }
-}
-```
-
-## 모니터링 및 로깅
-
-### 1. Actuator 설정
-```yaml
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    export:
-      prometheus:
-        enabled: true
-```
-
-### 2. 커스텀 메트릭
+### Application Metrics
 ```java
 @Component
 public class PropertyMetrics {
     
-    private final Counter propertyCreationCounter;
+    private final MeterRegistry meterRegistry;
+    private final Counter propertyCreatedCounter;
     private final Timer propertySearchTimer;
-    private final Gauge activePropertiesGauge;
     
     public PropertyMetrics(MeterRegistry meterRegistry) {
-        this.propertyCreationCounter = Counter.builder("property.created")
+        this.meterRegistry = meterRegistry;
+        this.propertyCreatedCounter = Counter.builder("property.created")
             .description("Number of properties created")
             .register(meterRegistry);
-            
-        this.propertySearchTimer = Timer.builder("property.search.duration")
-            .description("Property search duration")
+        this.propertySearchTimer = Timer.builder("property.search")
+            .description("Property search execution time")
             .register(meterRegistry);
-            
-        this.activePropertiesGauge = Gauge.builder("property.active.count")
-            .description("Number of active properties")
-            .register(meterRegistry, this, PropertyMetrics::getActivePropertyCount);
     }
     
-    public void incrementPropertyCreation() {
-        propertyCreationCounter.increment();
+    public void incrementPropertyCreated() {
+        propertyCreatedCounter.increment();
     }
     
-    public Timer.Sample startPropertySearchTimer() {
-        return Timer.start(propertySearchTimer);
-    }
-    
-    private double getActivePropertyCount() {
-        return propertyRepository.countByStatus(PropertyStatus.ACTIVE);
+    public void recordSearchTime(Duration duration) {
+        propertySearchTimer.record(duration);
     }
 }
 ```
 
-### 3. 구조화된 로깅
+### Audit Logging
 ```java
-@Slf4j
-@Component
-public class PropertyEventLogger {
+@Entity
+@Table(name = "property_audit_log")
+public class PropertyAuditLog {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     
-    public void logPropertyCreated(PropertyCreatedEvent event) {
-        log.info("Property created: propertyId={}, title={}, ownerId={}, timestamp={}",
-            event.getPropertyId(),
-            event.getTitle(),
-            event.getOwnerId(),
-            event.getOccurredOn()
-        );
-    }
+    private Long propertyId;
+    private String action; // CREATE, UPDATE, DELETE, STATUS_CHANGE
+    private String userId;
+    private String oldValues;
+    private String newValues;
+    private LocalDateTime timestamp;
+    private String ipAddress;
+    private String userAgent;
+}
+```
+
+## Testing Strategy
+
+### Unit Tests
+```java
+@ExtendWith(MockitoExtension.class)
+class PropertyServiceTest {
     
-    public void logPropertyStatusChanged(PropertyStatusChangedEvent event) {
-        log.info("Property status changed: propertyId={}, oldStatus={}, newStatus={}, reason={}, changedBy={}",
-            event.getPropertyId(),
-            event.getOldStatus(),
-            event.getNewStatus(),
-            event.getReason(),
-            event.getChangedBy()
-        );
+    @Mock
+    private PropertyRepository propertyRepository;
+    
+    @Mock
+    private UserService userService;
+    
+    @InjectMocks
+    private PropertyService propertyService;
+    
+    @Test
+    void createProperty_ValidRequest_ReturnsPropertyResponse() {
+        // Given
+        CreatePropertyRequest request = CreatePropertyRequest.builder()
+            .title("Test Property")
+            .address("Seoul, South Korea")
+            .propertyType(PropertyType.APARTMENT)
+            .price(new BigDecimal("1000000"))
+            .latitude(37.5665)
+            .longitude(126.9780)
+            .build();
+        
+        User owner = User.builder().id(1L).build();
+        Property savedProperty = Property.builder().id(1L).build();
+        
+        when(userService.findById("user1")).thenReturn(owner);
+        when(propertyRepository.save(any(Property.class))).thenReturn(savedProperty);
+        
+        // When
+        PropertyResponse response = propertyService.createProperty(request, "user1");
+        
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo(1L);
+        verify(propertyRepository).save(any(Property.class));
     }
 }
 ```
 
-## 결론
+### Integration Tests
+```java
+@SpringBootTest
+@Testcontainers
+@ActiveProfiles("test")
+class PropertyControllerIntegrationTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test");
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @Test
+    void createProperty_ValidRequest_Returns201() {
+        // Given
+        CreatePropertyRequest request = CreatePropertyRequest.builder()
+            .title("Integration Test Property")
+            .address("Test Address")
+            .propertyType(PropertyType.APARTMENT)
+            .price(new BigDecimal("1500000"))
+            .latitude(37.5665)
+            .longitude(126.9780)
+            .build();
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(getValidJwtToken());
+        HttpEntity<CreatePropertyRequest> entity = new HttpEntity<>(request, headers);
+        
+        // When
+        ResponseEntity<PropertyResponse> response = restTemplate.postForEntity(
+            "/api/properties", entity, PropertyResponse.class);
+        
+        // Then
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getTitle()).isEqualTo("Integration Test Property");
+    }
+}
+```
 
-Task 6의 백엔드 구현은 프론트엔드 매물 등록 및 관리 인터페이스를 완벽하게 지원하는 견고하고 확장 가능한 시스템을 제공합니다.
+## Deployment Configuration
 
-### 핵심 성과
-1. **완전한 RESTful API**: 모든 프론트엔드 기능을 지원하는 포괄적 API
-2. **도메인 주도 설계**: DDD 패턴을 활용한 유지보수 가능한 아키텍처
-3. **고성능 구현**: 캐싱, 인덱싱, 비동기 처리를 통한 최적화
-4. **보안 강화**: JWT 인증, 권한 기반 접근 제어, 데이터 검증
-5. **모니터링 완비**: 메트릭, 로깅, 헬스체크를 통한 운영 가시성
+### Docker Configuration
+```dockerfile
+# Multi-stage build for Spring Boot application
+FROM openjdk:21-jdk-slim as build
+WORKDIR /app
+COPY gradle* ./
+COPY gradlew .
+COPY src ./src
+COPY build.gradle .
+RUN ./gradlew build -x test
 
-### 기술적 우수성
-- **Spring Boot 3**: 최신 스프링 생태계 활용
-- **DDD Architecture**: 비즈니스 로직의 명확한 분리와 관리
-- **QueryDSL**: 타입 안전한 동적 쿼리 구현
-- **Event-Driven**: 도메인 이벤트를 통한 느슨한 결합
-- **Performance**: 캐싱과 최적화를 통한 고성능 달성
+FROM openjdk:21-jre-slim
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+```
 
-이 백엔드 구현은 HaniHome AU 플랫폼의 프론트엔드와 완벽하게 연동되어 사용자에게 원활하고 안정적인 매물 관리 경험을 제공할 준비가 완료되었습니다.
+### Environment Configuration
+```yaml
+# application-prod.yml
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/hanihome}
+    username: ${DB_USERNAME:hanihome}
+    password: ${DB_PASSWORD}
+    
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD}
+
+aws:
+  s3:
+    bucket:
+      property-images: ${S3_PROPERTY_IMAGES_BUCKET:hanihome-property-images}
+  region: ${AWS_REGION:ap-northeast-2}
+
+logging:
+  level:
+    com.hanihome: INFO
+    org.springframework.security: WARN
+```
+
+## Cross-References
+- **Frontend Implementation**: [frontend-documentation-task6.md](../frontend/document/frontend-documentation-task6.md)
+- **API Documentation**: Swagger UI at `/api/docs`
+- **Database Schema**: ERD diagrams in `/docs/database/`
+- **AWS Infrastructure**: CloudFormation templates in `/infrastructure/`
 
 ---
-
-**문서 버전**: 1.0.0  
-**최종 업데이트**: 2025년 8월 3일  
-**관련 Frontend 문서**: [frontend-documentation-task6.md](../../frontend/hanihome-au/document/frontend-documentation-task6.md)
+*Generated on $(date) by Auto Document System*
+*Task 6: Property Registration & Management Interface - Backend Implementation*

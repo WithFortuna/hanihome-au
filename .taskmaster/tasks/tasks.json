@@ -925,7 +925,7 @@
         "testStrategy": "설정된 프로파일별로 스프링 컨텍스트가 정상 로드되는지 검증. 각 프로파일에서 데이터베이스 연결이 올바르게 작동하는지 확인하는 간단한 통합 테스트 작성.",
         "priority": "high",
         "dependencies": [],
-        "status": "done",
+        "status": "review",
         "subtasks": [
           {
             "id": 1,
@@ -1269,7 +1269,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-06T23:30:55.625Z",
+      "updated": "2025-08-06T23:32:03.756Z",
       "description": "Tasks for master context"
     }
   }

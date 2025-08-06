@@ -1,6 +1,7 @@
 package com.hanihome.hanihome_au_api.infrastructure.config;
 
 import com.hanihome.hanihome_au_api.application.property.service.PropertyApplicationService;
+import com.hanihome.hanihome_au_api.application.property.service.SearchCacheEvictionService;
 import com.hanihome.hanihome_au_api.application.property.usecase.CreatePropertyUseCase;
 import com.hanihome.hanihome_au_api.application.user.usecase.CreateUserUseCase;
 import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
@@ -36,7 +37,9 @@ public class DddConfiguration {
     public PropertyApplicationService propertyApplicationService(
             PropertyRepository propertyRepository,
             PropertyDomainService propertyDomainService,
-            CreatePropertyUseCase createPropertyUseCase, DomainEventPublisher domainEventPublisher) {
-        return new PropertyApplicationService(propertyRepository, propertyDomainService, createPropertyUseCase, domainEventPublisher);
+            CreatePropertyUseCase createPropertyUseCase, 
+            DomainEventPublisher domainEventPublisher,
+            SearchCacheEvictionService cacheEvictionService) {
+        return new PropertyApplicationService(propertyRepository, propertyDomainService, createPropertyUseCase, domainEventPublisher, cacheEvictionService);
     }
 }

@@ -11,6 +11,7 @@ import com.hanihome.hanihome_au_api.domain.shared.valueobject.Money;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -240,5 +241,18 @@ public class PropertyRepositoryImpl implements PropertyRepository {
         PropertyJpaEntity.PropertyStatusEnum statusEnum = 
                 PropertyJpaEntity.PropertyStatusEnum.valueOf(status.name());
         return propertyJpaRepository.existsByLandlordIdAndStatus(ownerId.getValue(), statusEnum);
+    }
+
+    @Override
+    public List<Property> findAllById(Collection<Long> ids) {
+        List<PropertyJpaEntity> entities = propertyJpaRepository.findAllById(ids);
+        return entities.stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public long count() {
+        return propertyJpaRepository.count();
     }
 }

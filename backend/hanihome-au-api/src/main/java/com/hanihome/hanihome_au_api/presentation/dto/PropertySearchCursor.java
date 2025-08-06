@@ -28,5 +28,6 @@ public class PropertySearchCursor {
     private String encodedCursor;
     
     @Schema(description = "Whether to use cursor-based pagination")
+    @Builder.Default
     private Boolean useCursor = false;
 }

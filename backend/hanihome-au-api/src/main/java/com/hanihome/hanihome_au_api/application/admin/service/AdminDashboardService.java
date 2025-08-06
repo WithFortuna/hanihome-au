@@ -50,7 +50,7 @@ public class AdminDashboardService {
                 .userGrowthData(generateUserGrowthData())
                 
                 .totalProperties(propertyRepository.count())
-                .activeProperties(countPropertiesByStatus(PropertyStatus.AVAILABLE))
+                .activeProperties(countPropertiesByStatus(PropertyStatus.ACTIVE))
                 .newPropertiesToday(countPropertiesCreatedAfter(startOfToday))
                 .newPropertiesThisWeek(countPropertiesCreatedAfter(startOfWeek))
                 .newPropertiesThisMonth(countPropertiesCreatedAfter(startOfMonth))

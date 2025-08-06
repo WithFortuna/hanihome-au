@@ -27,6 +27,10 @@ public class Money {
         return new Money(amount, currency);
     }
 
+    public static Money of(BigDecimal amount) {
+        return new Money(amount, "AUD"); // Default currency for Australia
+    }
+
     public static Money zero(String currency) {
         return new Money(BigDecimal.ZERO, currency);
     }

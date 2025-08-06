@@ -916,11 +916,360 @@
             "testStrategy": ""
           }
         ]
+      },
+      {
+        "id": 11,
+        "title": "테스트 환경 설정 및 프로파일 구성",
+        "description": "프로젝트의 테스트 환경을 구성하고 test, integration-test, local-test 프로파일을 설정합니다. JUnit 5, Mockito, AssertJ, Testcontainers 등 필요한 테스트 라이브러리를 설정합니다.",
+        "details": "build.gradle에 JUnit 5 (5.10.1), Mockito (5.7.0), AssertJ (3.24.2), Testcontainers (1.19.3), WireMock (3.0.1) 의존성 추가. application-test.yml, application-integration-test.yml 설정 파일 생성. H2 인메모리 데이터베이스 설정 (test 프로파일용), PostgreSQL Testcontainers 설정 (integration-test 프로파일용). JaCoCo 플러그인 설정으로 코드 커버리지 측정 환경 구축. @TestPropertySource를 활용한 프로파일별 설정 분리.",
+        "testStrategy": "설정된 프로파일별로 스프링 컨텍스트가 정상 로드되는지 검증. 각 프로파일에서 데이터베이스 연결이 올바르게 작동하는지 확인하는 간단한 통합 테스트 작성.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "테스트 라이브러리 의존성 설정 및 build.gradle 구성",
+            "description": "JUnit 5, Mockito, AssertJ, Testcontainers, WireMock 등 필요한 테스트 라이브러리를 build.gradle에 추가하고 JaCoCo 플러그인을 설정합니다.",
+            "dependencies": [],
+            "details": "build.gradle.kts 파일에 다음 의존성들을 추가: JUnit 5 (5.10.1), Mockito (5.7.0), AssertJ (3.24.2), Testcontainers (1.19.3), WireMock (3.0.1). JaCoCo 플러그인 설정을 통해 코드 커버리지 측정 환경을 구축하고, 테스트 실행 옵션 및 보고서 생성 설정을 포함합니다.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "테스트 프로파일별 설정 파일 생성",
+            "description": "test, integration-test, local-test 프로파일에 해당하는 application-*.yml 설정 파일들을 생성합니다.",
+            "dependencies": [],
+            "details": "src/test/resources에 application-test.yml, application-integration-test.yml, application-local-test.yml 파일을 생성합니다. 각 프로파일별로 로깅 레벨, 데이터베이스 설정, 캐시 설정 등을 구분하여 관리하고, @TestPropertySource를 활용한 프로파일별 설정 분리 방법을 구현합니다.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "H2 인메모리 데이터베이스 설정 (test 프로파일용)",
+            "description": "단위 테스트용 H2 인메모리 데이터베이스 환경을 설정하고 테스트 데이터 초기화 스크립트를 작성합니다.",
+            "dependencies": [
+              "11.1",
+              "11.2"
+            ],
+            "details": "application-test.yml에 H2 데이터베이스 설정을 추가하고, JPA 설정(ddl-auto: create-drop)을 구성합니다. 테스트용 data.sql, schema.sql 파일 작성하여 테스트 데이터 초기화를 자동화하고, @Sql 어노테이션을 활용한 테스트별 데이터 설정 방법을 구현합니다.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Testcontainers PostgreSQL 설정 및 통합 테스트 환경 구축",
+            "description": "통합 테스트용 Testcontainers PostgreSQL 환경을 설정하고 프로파일별 테스트 실행을 검증합니다.",
+            "dependencies": [
+              "11.1",
+              "11.2"
+            ],
+            "details": "application-integration-test.yml에 Testcontainers PostgreSQL 설정을 추가합니다. @Testcontainers와 @Container 어노테이션을 활용한 컨테이너 관리 코드를 작성하고, 각 프로파일에서 스프링 컨텍스트가 정상 로드되는지 검증하는 통합 테스트를 구현합니다. 데이터베이스 연결 상태 및 트랜잭션 처리가 올바르게 작동하는지 확인하는 테스트 케이스를 포함합니다.",
+            "status": "done",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "테스트 데이터 팩토리 및 유틸리티 구축",
+        "description": "TestDataFactory 패턴과 Builder 패턴을 활용한 테스트 데이터 생성 유틸리티를 구축합니다. MockFactory를 통한 표준화된 Mock 객체 생성 시스템을 구현합니다.",
+        "details": "TestDataFactory 클래스 생성으로 Property, User, Notification 등 도메인 엔티티의 기본 테스트 데이터 제공. Builder 패턴을 활용한 PropertyTestDataBuilder, UserTestDataBuilder 구현. MockFactory 클래스로 Repository, ExternalApiService 등 의존성 Mock 객체 생성. JavaFaker (2.0.1) 라이브러리 활용한 랜덤 데이터 생성 유틸리티. @Sql 스크립트를 위한 test-data.sql, cleanup-data.sql 파일 작성.",
+        "testStrategy": "TestDataFactory가 유효한 도메인 객체를 생성하는지 검증. Builder 패턴으로 생성된 객체들이 비즈니스 규칙을 만족하는지 확인. Mock 객체들이 예상된 동작을 수행하는지 단위 테스트 작성.",
+        "priority": "high",
+        "dependencies": [
+          11
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "TestDataFactory 패턴 기반 도메인 엔티티별 기본 테스트 데이터 팩토리 구현",
+            "description": "Property, User, Notification 등 주요 도메인 엔티티를 위한 TestDataFactory 클래스를 구현하여 표준화된 테스트 데이터 생성 인터페이스를 제공합니다.",
+            "dependencies": [],
+            "details": "BaseTestDataFactory 추상 클래스 정의, PropertyTestDataFactory, UserTestDataFactory, NotificationTestDataFactory 구현. 각 팩토리는 기본값, 최소값, 최대값, 유효하지 않은 값 등 다양한 테스트 시나리오를 위한 데이터 생성 메서드 제공. 엔티티 간 연관관계를 고려한 일관성 있는 테스트 데이터 생성.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Builder 패턴을 활용한 유연한 테스트 데이터 빌더 클래스 구현",
+            "description": "각 도메인 엔티티별로 Builder 패턴을 적용한 테스트 데이터 빌더를 구현하여 테스트 케이스에 따른 맞춤형 데이터 생성을 지원합니다.",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "PropertyTestDataBuilder, UserTestDataBuilder, NotificationTestDataBuilder 클래스 구현. 메서드 체이닝을 통한 직관적인 데이터 설정 인터페이스 제공. 기본값 설정과 선택적 필드 설정 지원. 빌더 패턴의 fluent interface 구현으로 테스트 코드 가독성 향상.",
+            "status": "in-progress",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "MockFactory 클래스를 통한 표준화된 의존성 Mock 객체 생성 시스템 구현",
+            "description": "Repository, ExternalApiService 등 주요 의존성에 대한 Mock 객체를 표준화된 방식으로 생성하고 관리하는 MockFactory를 구현합니다.",
+            "dependencies": [
+              "12.1"
+            ],
+            "details": "MockFactory 클래스 구현으로 PropertyRepository, UserRepository, NotificationService, ExternalApiService 등의 Mock 객체 생성. Mockito를 활용한 동적 Mock 생성과 기본 동작 설정. 공통적으로 사용되는 Mock 동작 패턴을 메서드화하여 재사용성 향상. MockitoExtension과 연동하여 테스트 클래스에서 간편하게 사용할 수 있는 인터페이스 제공.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "JavaFaker 라이브러리 활용 랜덤 데이터 생성 유틸리티 구현",
+            "description": "JavaFaker 2.0.1을 활용하여 현실적이고 다양한 랜덤 테스트 데이터를 생성하는 유틸리티를 구축합니다.",
+            "dependencies": [
+              "12.2"
+            ],
+            "details": "FakerDataGenerator 유틸리티 클래스 구현. 한국어 로케일 설정으로 한국 주소, 이름, 전화번호 등 현지화된 데이터 생성. 부동산 관련 특화 데이터(가격 범위, 주소, 면적 등) 생성 메서드 구현. 이메일, URL, 날짜 등 다양한 형태의 유효한 테스트 데이터 생성. 시드값 설정을 통한 재현 가능한 랜덤 데이터 생성 지원.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "SQL 스크립트 기반 테스트 데이터 초기화 및 정리 시스템 구현",
+            "description": "@Sql 어노테이션과 함께 사용할 test-data.sql, cleanup-data.sql 스크립트를 작성하고 통합 테스트를 위한 데이터베이스 상태 관리 시스템을 구현합니다.",
+            "dependencies": [
+              "12.3",
+              "12.4"
+            ],
+            "details": "test-data.sql 스크립트 작성으로 기본 테스트 데이터셋 제공. cleanup-data.sql 스크립트로 테스트 후 데이터 정리. 테스트 클래스별 맞춤 SQL 스크립트 지원. @TestExecutionListeners를 활용한 자동 데이터 초기화/정리 기능. 트랜잭션 롤백과 SQL 스크립트 실행의 조화로운 테스트 환경 구성. 테스트 데이터 일관성 보장을 위한 외래키 제약조건 고려한 순서적 데이터 생성.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Domain Layer 단위 테스트 구현",
+        "description": "도메인 엔티티, Value Object, Domain Service의 단위 테스트를 구현합니다. 95% 커버리지 목표로 핵심 비즈니스 로직을 검증합니다.",
+        "details": "Property, User, Notification 엔티티의 생성자, 상태 변경 메서드, 도메인 이벤트 발행 로직 테스트. Money, Address, PhoneNumber 등 Value Object의 값 동등성, 불변성, 유효성 검증 테스트. PropertyManagementService, UserManagementService 등 Domain Service의 비즈니스 로직 테스트. @DisplayName으로 한국어 테스트 설명 제공. @Nested 클래스로 테스트 그룹핑. AAA 패턴(Arrange-Act-Assert) 적용한 명확한 테스트 구조. 경계값 테스트와 예외 상황 처리 검증.",
+        "testStrategy": "각 도메인 객체별로 생성, 수정, 삭제 시나리오 테스트. 비즈니스 규칙 위반시 적절한 예외 발생 검증. 도메인 이벤트가 올바르게 발행되는지 확인하는 테스트.",
+        "priority": "high",
+        "dependencies": [
+          12
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Property 엔티티 단위 테스트 구현",
+            "description": "Property 엔티티의 생성자, 상태 변경 메서드, 도메인 이벤트 발행 로직을 포괄적으로 테스트합니다.",
+            "dependencies": [],
+            "details": "Property 엔티티의 생성, 수정, 삭제 시나리오 테스트. 매물 상태 변경(활성/비활성/거래완료) 메서드 검증. 도메인 이벤트(PropertyCreated, PropertyStatusChanged) 발행 로직 테스트. 유효하지 않은 데이터로 Property 생성 시 예외 발생 검증. @DisplayName으로 한국어 테스트 설명 제공. @Nested 클래스로 생성자/상태변경/이벤트 그룹 분리. AAA 패턴 적용한 명확한 테스트 구조 구성.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "User 엔티티 단위 테스트 구현",
+            "description": "User 엔티티의 비즈니스 로직과 도메인 이벤트 발행을 검증하는 단위 테스트를 구현합니다.",
+            "dependencies": [],
+            "details": "User 엔티티 생성자 및 필드 검증 로직 테스트. 사용자 정보 업데이트 메서드(updateProfile, changePassword) 검증. 계정 활성화/비활성화 상태 변경 로직 테스트. 도메인 이벤트(UserRegistered, UserProfileUpdated) 발행 검증. 이메일 중복 체크 및 패스워드 암호화 로직 테스트. 경계값 테스트(닉네임 길이, 이메일 형식) 및 예외 상황 처리 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Value Object 단위 테스트 구현",
+            "description": "Money, Address, PhoneNumber 등 Value Object의 불변성과 유효성 검증을 테스트합니다.",
+            "dependencies": [],
+            "details": "Money Value Object의 값 동등성(equals/hashCode) 및 불변성 테스트. Address의 주소 유효성 검증 및 정규화 로직 테스트. PhoneNumber 형식 검증 및 국제번호 변환 테스트. Value Object 생성 시 유효하지 않은 값에 대한 예외 발생 검증. 경계값 테스트(음수 금액, 빈 주소, 잘못된 전화번호 형식). toString(), compareTo() 등 유틸리티 메서드 정확성 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Domain Service 단위 테스트 구현",
+            "description": "PropertyManagementService, UserManagementService 등 도메인 서비스의 복잡한 비즈니스 규칙을 테스트합니다.",
+            "dependencies": [
+              "13.1",
+              "13.2",
+              "13.3"
+            ],
+            "details": "PropertyManagementService의 매물 등록 규칙, 가격 계산, 상태 변경 로직 테스트. UserManagementService의 사용자 등급 산정, 신뢰도 계산 비즈니스 로직 검증. 서비스 간 협업이 필요한 복잡한 비즈니스 규칙(예: 매물 등록 시 사용자 권한 검증) 테스트. Mock 객체를 활용한 Repository 의존성 격리. 예외 상황에서의 적절한 도메인 예외 발생 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "도메인 이벤트 발행 메커니즘 테스트",
+            "description": "도메인 엔티티에서 발행되는 이벤트들이 올바르게 처리되고 전파되는지 검증합니다.",
+            "dependencies": [
+              "13.1",
+              "13.2"
+            ],
+            "details": "ApplicationEventPublisher를 통한 도메인 이벤트 발행 검증. PropertyCreated, UserRegistered 등 핵심 도메인 이벤트 발생 시점 및 데이터 정확성 테스트. 이벤트 핸들러에서의 적절한 처리 로직 검증. 트랜잭션 경계 내에서 이벤트 발행 및 처리 순서 검증. 이벤트 발행 실패 시 롤백 메커니즘 테스트. @EventListener 어노테이션 기반 이벤트 처리 테스트.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "도메인 계층 통합 테스트 및 95% 커버리지 달성",
+            "description": "모든 도메인 계층 컴포넌트의 통합 동작을 검증하고 95% 코드 커버리지를 달성합니다.",
+            "dependencies": [
+              "13.1",
+              "13.2",
+              "13.3",
+              "13.4",
+              "13.5"
+            ],
+            "details": "Entity, Value Object, Domain Service 간의 통합 시나리오 테스트. 복잡한 비즈니스 플로우(매물 등록→검증→이벤트 발행) 전체 검증. JaCoCo를 활용한 코드 커버리지 측정 및 95% 목표 달성. 누락된 테스트 케이스 식별 및 보완. 경계값 테스트, 예외 상황 테스트로 엣지 케이스 커버리지 향상. 테스트 보고서 생성 및 미달성 영역 개선.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Repository 계층 통합 테스트 구현",
+        "description": "JPA Repository와 QueryDSL을 활용한 데이터 접근 계층의 통합 테스트를 구현합니다. Testcontainers를 사용하여 실제 PostgreSQL 환경에서 테스트합니다.",
+        "details": "PropertyRepository, UserRepository, NotificationRepository의 기본 CRUD 연산 테스트. QueryDSL을 활용한 복잡한 조회 쿼리 검증 (매물 검색, 필터링). 페이징(Pageable)과 정렬(Sort) 기능 정확성 검증. @DataJpaTest와 Testcontainers PostgreSQL 통합. @Transactional과 @Rollback으로 테스트 격리. 커스텀 쿼리 메서드의 성능 및 정확성 테스트. 데이터베이스 제약조건 위반 시나리오 테스트.",
+        "testStrategy": "각 Repository별로 저장, 조회, 업데이트, 삭제 시나리오 테스트. 복잡한 검색 조건에 대한 쿼리 결과 정확성 검증. 페이징 결과의 전체 개수와 정렬 순서 확인.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Testcontainers를 활용한 테스트 환경 구성",
+            "description": "PostgreSQL Testcontainers 설정과 테스트 인프라스트럭처 구현",
+            "dependencies": [],
+            "details": "TestContainers PostgreSQL 컨테이너 설정 및 @TestConfiguration 클래스 구현. application-test.yml에서 데이터베이스 연결 설정. @DataJpaTest와 @Testcontainers 어노테이션을 활용한 테스트 클래스 기본 구조 생성. 테스트 격리를 위한 @Transactional 및 @Rollback 설정 적용.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "PropertyRepository 통합 테스트 구현",
+            "description": "PropertyRepository의 CRUD 연산과 커스텀 쿼리 메서드 테스트",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "Property 엔티티 저장, 조회, 업데이트, 삭제 기본 CRUD 테스트. PropertyStatus별 조회 테스트와 매물 검색 필터링 쿼리 검증. 가격 범위, 지역별, 매물 유형별 조회 메서드 정확성 테스트. 페이징 처리된 매물 목록 조회와 정렬 옵션 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "UserRepository와 NotificationRepository 통합 테스트 구현",
+            "description": "사용자 및 알림 Repository의 데이터 접근 로직 검증",
+            "dependencies": [
+              "14.1"
+            ],
+            "details": "UserRepository의 이메일 기반 사용자 조회와 역할별 사용자 검색 테스트. 사용자 상태 변경 및 프로필 정보 업데이트 검증. NotificationRepository의 사용자별 알림 조회와 읽음 처리 테스트. 알림 타입별 필터링과 페이징 처리 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "QueryDSL 복잡한 쿼리 검증 테스트",
+            "description": "QueryDSL을 활용한 동적 쿼리와 복잡한 조인 쿼리 테스트",
+            "dependencies": [
+              "14.2",
+              "14.3"
+            ],
+            "details": "매물 검색을 위한 다중 조건 동적 쿼리 테스트 (가격, 지역, 옵션 조합). Property-User 간 조인 쿼리로 임대인 정보와 함께 매물 조회 검증. Projection을 활용한 DTO 변환 쿼리 테스트. 집계 함수를 활용한 통계 쿼리 (지역별 평균 가격, 매물 수) 검증.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "데이터베이스 제약조건과 성능 테스트",
+            "description": "DB 제약조건 위반 시나리오와 쿼리 성능 검증",
+            "dependencies": [
+              "14.4"
+            ],
+            "details": "유니크 제약조건 위반 시 적절한 예외 발생 검증 (이메일 중복 등). 외래키 제약조건 위반 시나리오 테스트. 대량 데이터 삽입 후 페이징 쿼리 성능 측정. 인덱스 효과 검증을 위한 쿼리 실행 시간 비교. 트랜잭션 격리 수준에 따른 동시성 테스트.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Application Service 계층 단위 테스트 구현",
+        "description": "Application Service의 Command/Query 처리 로직, 트랜잭션 경계, DTO 변환 로직을 테스트합니다. 90% 커버리지 목표로 서비스 로직을 검증합니다.",
+        "details": "PropertyApplicationService, UserApplicationService, NotificationApplicationService의 비즈니스 로직 테스트. Command 객체 처리 및 Query 객체 응답 검증. @Mock과 @InjectMocks를 활용한 의존성 주입 테스트. DTO-Entity 간 변환 로직 정확성 검증. @Transactional 어노테이션 동작 검증. 권한 검증 로직 테스트. 예외 상황에서의 적절한 예외 발생 및 메시지 검증. 서비스 간 협업 시나리오 테스트.",
+        "testStrategy": "각 서비스 메서드별로 성공 시나리오와 실패 시나리오 모두 테스트. Mock 객체를 통한 의존성 격리 검증. 트랜잭션 롤백이 올바르게 동작하는지 확인.",
+        "priority": "medium",
+        "dependencies": [
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Controller 계층 통합 테스트 구현",
+        "description": "REST API 엔드포인트의 HTTP 요청/응답, 인증/인가, 입력값 검증을 테스트합니다. MockMvc를 활용한 웹 계층 테스트를 구현합니다.",
+        "details": "@WebMvcTest와 MockMvc를 활용한 Controller 테스트. PropertyController, UserController, NotificationController의 모든 엔드포인트 테스트. HTTP 상태 코드(200, 201, 400, 401, 403, 404, 500) 검증. JSON 요청/응답 직렬화/역직렬화 테스트. @Valid 어노테이션을 통한 입력값 검증 테스트. JWT 토큰 기반 인증 테스트. 역할 기반 접근 제어(RBAC) 검증. @WithMockUser를 활용한 인증된 사용자 시뮬레이션. Content-Type, Accept 헤더 검증.",
+        "testStrategy": "각 API 엔드포인트별로 정상 요청과 비정상 요청 시나리오 테스트. 인증되지 않은 사용자의 접근 차단 검증. 잘못된 입력값에 대한 적절한 에러 응답 확인.",
+        "priority": "medium",
+        "dependencies": [
+          15
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "보안 계층 테스트 구현",
+        "description": "JWT 토큰 검증, OAuth2 인증 플로우, CSRF 보안, SQL Injection 방어 등 보안 관련 기능을 테스트합니다.",
+        "details": "JwtTokenProvider의 토큰 생성, 검증, 만료 처리 테스트. OAuth2 인증 플로우 및 사용자 정보 추출 테스트. @WithSecurityContext를 활용한 보안 컨텍스트 테스트. SQL Injection 방어를 위한 PreparedStatement 사용 검증. XSS 공격 방어를 위한 입력값 이스케이프 테스트. CSRF 토큰 검증 로직 테스트. 비밀번호 암호화(BCrypt) 및 검증 테스트. 접근 권한별 API 엔드포인트 접근 제어 테스트. 토큰 탈취 시나리오 및 보안 대응 테스트.",
+        "testStrategy": "유효한 토큰과 만료된 토큰, 변조된 토큰에 대한 검증 테스트. 권한이 없는 사용자의 리소스 접근 시도 차단 검증. 보안 취약점별 방어 메커니즘 동작 확인.",
+        "priority": "high",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "외부 서비스 연동 테스트 구현",
+        "description": "FCM 푸시 알림, 이메일 서비스, OAuth2 연동 등 외부 서비스와의 통합을 테스트합니다. WireMock을 활용한 외부 API 모킹을 구현합니다.",
+        "details": "WireMock (3.0.1)을 활용한 FCM API, 이메일 서비스 API 모킹. NotificationService의 푸시 알림 발송 로직 테스트. EmailService의 이메일 발송 및 템플릿 처리 테스트. OAuth2 공급자(Google, Kakao) 연동 테스트. 외부 API 응답 지연, 타임아웃, 오류 상황 시뮬레이션. Circuit Breaker 패턴 적용 서비스의 장애 복구 테스트. @MockBean을 활용한 외부 서비스 의존성 격리. 재시도 로직 및 Fallback 메커니즘 테스트.",
+        "testStrategy": "외부 서비스 정상 응답 및 오류 응답 시나리오 테스트. 네트워크 장애 상황에서의 시스템 복원력 검증. 외부 API 스펙 변경에 대한 호환성 테스트.",
+        "priority": "medium",
+        "dependencies": [
+          17
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "성능 및 부하 테스트 구현",
+        "description": "주요 API 엔드포인트의 성능 벤치마크를 수행하고, 동시 사용자 1000명 기준의 부하 테스트를 구현합니다.",
+        "details": "JMeter 또는 Gatling을 활용한 API 성능 테스트 스크립트 작성. 매물 검색, 사용자 인증, 알림 발송 등 핵심 API의 응답 시간 측정. 동시 사용자 1000명 시나리오에서 95%의 요청이 2초 이내 응답하는지 검증. 데이터베이스 커넥션 풀 최적화 테스트. Redis 캐시 활용 성능 향상 검증. 메모리 누수 및 GC 성능 모니터링. 스트레스 테스트를 통한 시스템 한계점 식별. @Test(timeout) 어노테이션을 활용한 단위 테스트 성능 검증.",
+        "testStrategy": "기준 성능 지표 대비 응답 시간 및 처리량 검증. 부하 증가에 따른 시스템 성능 저하 패턴 분석. 메모리 사용량과 CPU 사용률 임계치 확인.",
+        "priority": "low",
+        "dependencies": [
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "CI/CD 통합 및 품질 게이트 설정",
+        "description": "GitHub Actions를 활용한 자동화된 테스트 실행 환경을 구축하고, SonarQube 연동을 통한 코드 품질 관리 시스템을 설정합니다.",
+        "details": "GitHub Actions 워크플로우 파일(.github/workflows/test.yml) 작성. 단위 테스트, 통합 테스트 단계별 실행 설정. JaCoCo를 통한 코드 커버리지 리포트 생성 및 GitHub Pages 배포. SonarQube 연동을 위한 sonar-project.properties 설정. 최소 커버리지 기준(라인 80%, 브랜치 70%) 미달시 빌드 실패 설정. 테스트 실패시 Slack 알림 전송 설정. PR 생성시 자동 테스트 실행 및 커버리지 변화 리포트. 품질 게이트 통과시에만 main 브랜치 머지 허용 설정.",
+        "testStrategy": "CI/CD 파이프라인에서 모든 테스트가 성공적으로 실행되는지 검증. 커버리지 기준 미달시 빌드가 실패하는지 확인. 코드 품질 메트릭이 정상적으로 수집되는지 검증.",
+        "priority": "medium",
+        "dependencies": [
+          19
+        ],
+        "status": "pending",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-05T23:06:58.361Z",
+      "updated": "2025-08-06T23:30:55.625Z",
       "description": "Tasks for master context"
     }
   }

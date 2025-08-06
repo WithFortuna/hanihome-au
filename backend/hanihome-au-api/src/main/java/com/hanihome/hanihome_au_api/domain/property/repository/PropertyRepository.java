@@ -9,6 +9,7 @@ import com.hanihome.hanihome_au_api.domain.shared.valueobject.Address;
 import com.hanihome.hanihome_au_api.domain.shared.valueobject.Money;
 import com.hanihome.hanihome_au_api.domain.user.valueobject.UserId;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,9 @@ public interface PropertyRepository {
     // Basic CRUD operations
     Property save(Property property);
     Optional<Property> findById(PropertyId id);
+    List<Property> findAllById(Collection<Long> ids);
     void delete(Property property);
+    long count();
     
     // Domain-specific queries
     List<Property> findByOwnerId(UserId ownerId);

@@ -1,0 +1,137 @@
+# Local Test Configuration for HaniHome AU API
+# This profile is for local development testing with real database
+spring:
+  application:
+    name: hanihome-au-api-local-test
+  
+  # Local PostgreSQL Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hanihome_test
+    username: ${DB_USERNAME:hanihome_user}
+    password: ${DB_PASSWORD:hanihome_password}
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Use validate to ensure schema matches migrations
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        
+  # Enable Flyway for local tests
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    clean-disabled: false  # Allow clean for local testing
+    
+  # Local Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 2  # Different database for local tests
+      password: ${REDIS_PASSWORD:}
+      timeout: 5000ms
+
+# JWT Configuration for local tests
+jwt:
+  secret: ${JWT_SECRET:local-test-jwt-secret-key-for-development-testing-only}
+  expiration: 86400000  # 24 hours for development convenience
+  refresh-expiration: 604800000  # 7 days
+
+# File Storage Configuration
+app:
+  file-storage:
+    upload-dir: ${FILE_UPLOAD_DIR:local-test-uploads}
+    base-url: ${FILE_BASE_URL:http://localhost:8080/files}
+    max-file-size: ${FILE_MAX_SIZE:20MB}
+    allowed-extensions: jpg,jpeg,png,gif,webp,pdf,doc,docx
+
+# Rate Limiting for local development
+rate-limit:
+  requests-per-minute: 200
+  burst-size: 20
+
+# Local Test Logging - Detailed for debugging
+logging:
+  level:
+    com.hanihome: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.web: INFO
+    org.springframework.transaction: DEBUG
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: logs/local-test.log
+    max-size: 100MB
+    max-history: 10
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
+
+# OAuth2 Configuration for local testing
+security:
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${OAUTH2_GOOGLE_CLIENT_ID:your-google-client-id}
+          client-secret: ${OAUTH2_GOOGLE_CLIENT_SECRET:your-google-client-secret}
+          redirect-uri: ${OAUTH2_GOOGLE_REDIRECT_URI:http://localhost:8080/oauth2/callback/google}
+        apple:
+          client-id: ${OAUTH2_APPLE_CLIENT_ID:your-apple-client-id}
+          client-secret: ${OAUTH2_APPLE_CLIENT_SECRET:your-apple-client-secret}
+          redirect-uri: ${OAUTH2_APPLE_REDIRECT_URI:http://localhost:8080/oauth2/callback/apple}
+
+# Email Configuration for local testing
+spring.mail:
+  host: ${SMTP_HOST:smtp.gmail.com}
+  port: ${SMTP_PORT:587}
+  username: ${SMTP_USERNAME:your-email@gmail.com}
+  password: ${SMTP_PASSWORD:your-app-password}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+        connectiontimeout: 5000
+        timeout: 5000
+        writetimeout: 5000
+
+# FCM Configuration for local testing
+fcm:
+  credentials-path: ${FCM_CREDENTIALS_PATH:firebase-credentials.json}
+  enabled: ${FCM_ENABLED:false}
+
+# Cache Configuration
+spring.cache:
+  type: redis
+  redis:
+    time-to-live: 600000  # 10 minutes
+    key-prefix: "local-test:"
+    use-key-prefix: true
+
+# External API Configuration for local testing
+external:
+  api:
+    timeout: 30000  # 30 seconds
+    retry-attempts: 3
+    backoff-delay: 1000  # 1 second

@@ -69,6 +69,5 @@ ON search_history (user_id, created_at DESC);
 -- ON properties USING gist(ll_to_earth(latitude, longitude));
 
 -- Update table statistics for better query planning
-ANALYZE properties;
-ANALYZE property_favorites;
-ANALYZE search_history;
+-- Note: ANALYZE statements removed to avoid Flyway transaction conflicts
+-- Database will auto-analyze these tables as needed

@@ -250,7 +250,15 @@ determine_work_type() {
             total_score=$((total_score + custom_matches * weight))
             wd_log_debug "$work_type custom command matches: $custom_matches (weighted: $((custom_matches * weight)))"
         fi
-
+        # Custom command matches (for github_work)
+         if [[ "$work_type" == "github_work" && -n "$transcript_content" ]]; then
+             local custom_matches
+             custom_matches=$(check_pattern_matches "$work_type"                            "custom_command_for_git" "$transcript_content")
+             local weight
+             weight=$(get_scoring_weight "custom_command_for_git")
+             total_score=$((total_score + custom_matches * weight))
+             wd_log_debug "$work_type custom command matches: $custom_matches (weighted:    $((custom_matches * weight)))"
+         fi
 
         # Transcript keyword matches
         if [[ -n "$transcript_content" ]]; then

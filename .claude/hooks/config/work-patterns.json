@@ -13,7 +13,9 @@
         "API 구현",
         "서비스 구현",
         "구현",
-        "설계"
+        "설계",
+        "테스트 구현",
+        "테스트 리팩토링"
       ],
       "file_extensions": [
         ".java",
@@ -344,6 +346,9 @@
         "gh status",
         "gh variable"
       ],
+      "custom_command_for_git": [
+         "git-automation-after"
+       ],
       "weight": 5
     }
   },
@@ -358,7 +363,8 @@
     "content_indicator_match": 1,
     "taskmaster_activity": 5,
     "custom_command_for_feature_match": 100,
-    "custom_command_for_documentation_match": 100
+    "custom_command_for_documentation_match": 70,
+    "custom_command_for_git": 100
   },
   "thresholds": {
     "minimum_score": 3,

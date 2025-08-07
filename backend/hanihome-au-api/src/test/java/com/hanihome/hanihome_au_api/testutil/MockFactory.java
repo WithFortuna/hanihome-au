@@ -8,6 +8,7 @@ import com.hanihome.hanihome_au_api.application.notification.service.FCMNotifica
 import com.hanihome.hanihome_au_api.security.jwt.JwtTokenProvider;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -213,7 +215,7 @@ public class MockFactory {
         }
     }
 
-    // Test Configuration
+    // Test Configuration and Management
     public static class Configuration {
         
         /**
@@ -251,6 +253,71 @@ public class MockFactory {
          */
         public static org.mockito.verification.VerificationMode once() {
             return Mockito.times(1);
+        }
+        
+        /**
+         * MockitoExtension과 연동된 테스트 클래스 초기화
+         */
+        public static void initMocks(Object testInstance) {
+            MockitoAnnotations.openMocks(testInstance);
+        }
+        
+        /**
+         * 테스트 전용 Mock 프리셋 컬렉션
+         */
+        public static class Presets {
+            
+            /**
+             * 표준 Repository Mock 셋업 (기본 CRUD 동작)
+             */
+            public static <T, ID> void setupStandardRepository(org.springframework.data.jpa.repository.JpaRepository<T, ID> repository) {
+                when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+                when(repository.findById(any())).thenReturn(Optional.empty());
+                when(repository.findAll()).thenReturn(List.of());
+                when(repository.count()).thenReturn(0L);
+                when(repository.existsById(any())).thenReturn(false);
+            }
+            
+            /**
+             * 성공적인 Repository Mock 셋업 (데이터 존재 가정)
+             */
+            public static <T, ID> void setupSuccessfulRepository(
+                org.springframework.data.jpa.repository.JpaRepository<T, ID> repository, 
+                T sampleEntity) {
+                
+                when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+                when(repository.findById(any())).thenReturn(Optional.of(sampleEntity));
+                when(repository.findAll()).thenReturn(List.of(sampleEntity));
+                when(repository.count()).thenReturn(1L);
+                when(repository.existsById(any())).thenReturn(true);
+            }
+            
+            /**
+             * 예외를 발생시키는 Repository Mock 셋업 (에러 케이스 테스트용)
+             */
+            public static <T, ID> void setupErrorRepository(
+                org.springframework.data.jpa.repository.JpaRepository<T, ID> repository, 
+                Exception exception) {
+                
+                when(repository.save(any())).thenThrow(exception);
+                when(repository.findById(any())).thenThrow(exception);
+                when(repository.findAll()).thenThrow(exception);
+                when(repository.count()).thenThrow(exception);
+                when(repository.existsById(any())).thenThrow(exception);
+            }
+            
+            /**
+             * 표준 Service Mock 셋업
+             */
+            public static void setupStandardEmailService(EmailNotificationService service) {
+                doNothing().when(service).sendNotification(any(), any(), any());
+                when(service.isEnabled()).thenReturn(true);
+            }
+            
+            public static void setupStandardFCMService(FCMNotificationService service) {
+                doNothing().when(service).sendNotification(any(), any(), any());
+                when(service.isEnabled()).thenReturn(true);
+            }
         }
     }
 

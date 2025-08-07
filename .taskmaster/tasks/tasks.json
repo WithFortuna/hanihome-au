@@ -1000,7 +1000,7 @@
               "12.1"
             ],
             "details": "PropertyTestDataBuilder, UserTestDataBuilder, NotificationTestDataBuilder 클래스 구현. 메서드 체이닝을 통한 직관적인 데이터 설정 인터페이스 제공. 기본값 설정과 선택적 필드 설정 지원. 빌더 패턴의 fluent interface 구현으로 테스트 코드 가독성 향상.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1011,7 +1011,7 @@
               "12.1"
             ],
             "details": "MockFactory 클래스 구현으로 PropertyRepository, UserRepository, NotificationService, ExternalApiService 등의 Mock 객체 생성. Mockito를 활용한 동적 Mock 생성과 기본 동작 설정. 공통적으로 사용되는 Mock 동작 패턴을 메서드화하여 재사용성 향상. MockitoExtension과 연동하여 테스트 클래스에서 간편하게 사용할 수 있는 인터페이스 제공.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1269,7 +1269,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-06T23:32:03.756Z",
+      "updated": "2025-08-07T00:16:23.523Z",
       "description": "Tasks for master context"
     }
   }

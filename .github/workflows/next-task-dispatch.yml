@@ -1,34 +1,76 @@
 # .github/workflows/next-task-dispatch.yml
+name: Next Task (dispatch receiver)
+
 on:
   repository_dispatch:
     types: [kick-next-code, kick-next-docs]
+
+concurrency:
+  group: next-task-${{ github.event.client_payload.request_id || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   run:
     runs-on: self-hosted
+
     steps:
-      - name: Idempotency guard(use request_id)
+      - uses: actions/checkout@v4
+
+      - name: Idempotency guard (use request_id)
         id: idem
         run: |
           REQUEST_ID='${{ github.event.client_payload.request_id || github.run_id }}'
-          ROOT="${GITHUB_WORKSPACE:-$PWD}"  # 레포 루트
-          HANDLED_FILE="$ROOT/.github/handled-requests.txt"
+          BASE="$HOME/Desktop/open_the_door/lets_developing/project/olaf_universe/demo/.github"
+          mkdir -p "$BASE/automation/$NS_SAFE"
+          HANDLED_FILE="$BASE/automation/$NS_SAFE/handled-requests.txt"
           mkdir -p "$(dirname "$HANDLED_FILE")"
           touch "$HANDLED_FILE"
+
           if grep -qx "$REQUEST_ID" "$HANDLED_FILE"; then
             echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Already handled: $REQUEST_ID"
           else
             echo "$REQUEST_ID" >> "$HANDLED_FILE"
             echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Marked handled: $REQUEST_ID"
           fi
-      - name: Route by event_type
+
+      - name: Route by event_type and run OSA
+        if: steps.idem.outputs.skip == 'false'
+        env:
+          TYPE: ${{ github.event.action }}  # event_type == kick-next-code/docs
+          PR_NUM: ${{ github.event.client_payload.pr_number }}
+          WORK_DIR: ${{ github.event.client_payload.work_dir }}
+          PROMPT_IN: ${{ github.event.client_payload.prompt }}
         run: |
-          TYPE='${{ github.event.action }}'   # event_type
-          if [[ "$TYPE" == "kick-next-docs" ]]; then
-            PROMPT='${{ github.event.client_payload.prompt }}'
-          else
-            PROMPT='${{ github.event.client_payload.prompt }}'
+          echo "event_type=$TYPE pr=$PR_NUM work_dir=$WORK_DIR"
+
+          case "$TYPE" in
+            kick-next-docs)
+              NEXT_STAGE="DOCS"
+              PROMPT="${PROMPT_IN:-/write-docs-and-publish ...}"
+              # 필요하면 다른 OSA 스크립트로 교체: scripts/next_task_docs_with_osa.sh
+              ;;
+            kick-next-code)
+              NEXT_STAGE="GITHUB"
+              PROMPT="${PROMPT_IN:-/finish-subtasks-half-amount-of ...}"
+              ;;
+            *)
+              # 기본 라우트(원하지 않으면 exit 0)
+              NEXT_STAGE="GITHUB"
+              PROMPT="${PROMPT_IN:-/finish-subtasks-half-amount-of ...}"
+              ;;
+          esac
+
+          # 인자: TASK_ID(여기선 pr_number를 식별자로 사용), NEXT_STAGE, WORK_DIR, PROMPT
+          if [[ -z "$PR_NUM" ]]; then
+            echo "PR number is empty; set a stable TASK_ID in client_payload or map it here."
+            exit 1
           fi
-          ./scripts/next_task_with_osa.sh \
-            '${{ github.event.client_payload.pr_number }}' \
-            '${{ github.event.client_payload.work_dir }}' \
-            "$PROMPT"
+
+          if [[ ! -x ./scripts/next_task_with_osa.sh ]]; then
+            echo "Missing ./scripts/next_task_with_osa.sh (check out repository and path)."
+            exit 1
+          fi
+
+          ./scripts/next_task_with_osa.sh "$PR_NUM" "$NEXT_STAGE" "$WORK_DIR" "$PROMPT"

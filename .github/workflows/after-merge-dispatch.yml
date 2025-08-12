@@ -5,7 +5,8 @@ on:
     types: [closed]
 
 permissions:
-  contents: read
+  contents: write
+  actions: write
 
 jobs:
   dispatch-next:
@@ -46,3 +47,4 @@ jobs:
               "prompt": "${PROMPT}"
             }
           }
+          JSON

@@ -1,0 +1,34 @@
+# .github/workflows/next-task-dispatch.yml
+on:
+  repository_dispatch:
+    types: [kick-next-code, kick-next-docs]
+jobs:
+  run:
+    runs-on: self-hosted
+    steps:
+      - name: Idempotency guard(use request_id)
+        id: idem
+        run: |
+          REQUEST_ID='${{ github.event.client_payload.request_id || github.run_id }}'
+          ROOT="${GITHUB_WORKSPACE:-$PWD}"  # 레포 루트
+          HANDLED_FILE="$ROOT/.github/handled-requests.txt"
+          mkdir -p "$(dirname "$HANDLED_FILE")"
+          touch "$HANDLED_FILE"
+          if grep -qx "$REQUEST_ID" "$HANDLED_FILE"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "$REQUEST_ID" >> "$HANDLED_FILE"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Route by event_type
+        run: |
+          TYPE='${{ github.event.action }}'   # event_type
+          if [[ "$TYPE" == "kick-next-docs" ]]; then
+            PROMPT='${{ github.event.client_payload.prompt }}'
+          else
+            PROMPT='${{ github.event.client_payload.prompt }}'
+          fi
+          ./scripts/next_task_with_osa.sh \
+            '${{ github.event.client_payload.pr_number }}' \
+            '${{ github.event.client_payload.work_dir }}' \
+            "$PROMPT"

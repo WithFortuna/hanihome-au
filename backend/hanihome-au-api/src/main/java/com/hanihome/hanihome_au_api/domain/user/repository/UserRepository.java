@@ -16,5 +16,7 @@ public interface UserRepository {
     
     boolean existsByEmail(Email email);
     
+    long count();
+    
     void delete(User user);
 }

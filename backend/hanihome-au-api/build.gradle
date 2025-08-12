@@ -43,6 +43,10 @@ dependencies {
 	// Redis for session management
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	
+	// Spring Retry
+	implementation 'org.springframework.retry:spring-retry'
+	implementation 'org.springframework:spring-aspects'
+	
 	// QueryDSL
 	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
 	implementation 'com.querydsl:querydsl-core:5.1.0'
@@ -67,8 +71,20 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+	
+	// Testing dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+	testImplementation 'org.mockito:mockito-core:5.7.0'
+	testImplementation 'org.mockito:mockito-junit-jupiter:5.7.0'
+	testImplementation 'org.assertj:assertj-core:3.24.2'
+	testImplementation 'org.testcontainers:testcontainers:1.19.3'
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+	testImplementation 'org.testcontainers:postgresql:1.19.3'
+	testImplementation 'com.github.tomakehurst:wiremock-jre8:3.0.1'
+	testImplementation 'com.github.javafaker:javafaker:1.0.2'
+	testImplementation 'com.h2database:h2'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -153,8 +169,9 @@ configurations {
 dependencies {
 	// Integration test dependencies
 	integrationTestImplementation 'org.springframework.boot:spring-boot-starter-test'
-	integrationTestImplementation 'org.testcontainers:junit-jupiter'
-	integrationTestImplementation 'org.testcontainers:postgresql'
+	integrationTestImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+	integrationTestImplementation 'org.testcontainers:postgresql:1.19.3'
+	integrationTestImplementation 'com.github.tomakehurst:wiremock-jre8:3.0.1'
 	integrationTestRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
@@ -167,6 +184,14 @@ task integrationTest(type: Test) {
 	shouldRunAfter test
 	
 	useJUnitPlatform()
+}
+
+task localTest(type: Test) {
+	description = 'Runs tests with local-test profile for development.'
+	group = 'verification'
+	
+	useJUnitPlatform()
+	systemProperty 'spring.profiles.active', 'local-test'
 }
 
 tasks.withType(JavaCompile) {

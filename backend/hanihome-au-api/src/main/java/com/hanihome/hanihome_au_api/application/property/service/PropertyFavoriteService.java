@@ -4,6 +4,7 @@ import com.hanihome.hanihome_au_api.application.property.dto.*;
 import com.hanihome.hanihome_au_api.domain.entity.PropertyFavorite;
 import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import com.hanihome.hanihome_au_api.domain.property.repository.PropertyRepository;
+import com.hanihome.hanihome_au_api.domain.property.valueobject.PropertyId;
 import com.hanihome.hanihome_au_api.exception.GlobalExceptionHandler;
 import com.hanihome.hanihome_au_api.repository.PropertyFavoriteRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class PropertyFavoriteService {
         }
 
         // Verify property exists
-        Property property = propertyRepository.findById(command.getPropertyId())
+        Property property = propertyRepository.findById(PropertyId.of(command.getPropertyId()))
                 .orElseThrow(() -> new IllegalArgumentException("Property not found"));
 
         PropertyFavorite favorite = new PropertyFavorite(
@@ -114,7 +115,7 @@ public class PropertyFavoriteService {
                 .collect(Collectors.toSet());
 
         Map<Long, Property> propertyMap = propertyRepository.findAllById(propertyIds).stream()
-                .collect(Collectors.toMap(Property::getId, property -> property));
+                .collect(Collectors.toMap(property -> property.getId().getValue(), property -> property));
 
         return favorites.map(favorite -> {
             Property property = propertyMap.get(favorite.getPropertyId());
@@ -132,7 +133,7 @@ public class PropertyFavoriteService {
                 .collect(Collectors.toSet());
 
         Map<Long, Property> propertyMap = propertyRepository.findAllById(propertyIds).stream()
-                .collect(Collectors.toMap(Property::getId, property -> property));
+                .collect(Collectors.toMap(property -> property.getId().getValue(), property -> property));
 
         return favorites.map(favorite -> {
             Property property = propertyMap.get(favorite.getPropertyId());
@@ -176,7 +177,7 @@ public class PropertyFavoriteService {
                 .collect(Collectors.toSet());
 
         Map<Long, Property> propertyMap = propertyRepository.findAllById(propertyIds).stream()
-                .collect(Collectors.toMap(Property::getId, property -> property));
+                .collect(Collectors.toMap(property -> property.getId().getValue(), property -> property));
 
         return favorites.stream()
                 .map(favorite -> {

@@ -3,6 +3,8 @@ package com.hanihome.hanihome_au_api.presentation.web.property;
 import com.hanihome.hanihome_au_api.application.property.dto.*;
 import com.hanihome.hanihome_au_api.application.property.service.PropertyFavoriteService;
 import com.hanihome.hanihome_au_api.dto.response.ApiResponse;
+import com.hanihome.hanihome_au_api.presentation.dto.AddToFavoritesRequest;
+import com.hanihome.hanihome_au_api.presentation.dto.UpdateFavoriteRequest;
 import com.hanihome.hanihome_au_api.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

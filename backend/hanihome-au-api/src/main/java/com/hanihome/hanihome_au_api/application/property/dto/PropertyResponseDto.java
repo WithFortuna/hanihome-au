@@ -1,5 +1,6 @@
 package com.hanihome.hanihome_au_api.application.property.dto;
 
+import com.hanihome.hanihome_au_api.domain.property.entity.Property;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -86,4 +87,33 @@ public class PropertyResponseDto {
     public LocalDateTime getAvailableFrom() { return availableFrom; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public static PropertyResponseDto from(Property property) {
+        return new PropertyResponseDto(
+                property.getId() != null ? property.getId().getValue() : null,
+                property.getOwnerId() != null ? property.getOwnerId().getValue() : null,
+                property.getTitle(),
+                property.getDescription(),
+                property.getType() != null ? property.getType().name() : null,
+                property.getRentalType() != null ? property.getRentalType().name() : null,
+                property.getStatus() != null ? property.getStatus().name() : null,
+                property.getAddress() != null ? property.getAddress().getFullAddress() : null,
+                property.getAddress() != null ? property.getAddress().getLatitude() : null,
+                property.getAddress() != null ? property.getAddress().getLongitude() : null,
+                property.getSpecs() != null ? property.getSpecs().getBedrooms() : 0,
+                property.getSpecs() != null ? property.getSpecs().getBathrooms() : 0,
+                property.getSpecs() != null ? property.getSpecs().getFloorArea() : null,
+                property.getSpecs() != null ? property.getSpecs().getFloor() : null,
+                property.getSpecs() != null ? property.getSpecs().getTotalFloors() : null,
+                property.getParkingAvailable() != null ? property.getParkingAvailable() : false,
+                property.getPetAllowed() != null ? property.getPetAllowed() : false,
+                false, // hasElevator - not available in current Property model
+                property.getRentPrice() != null ? property.getRentPrice().getAmount() : null,
+                property.getDepositAmount() != null ? property.getDepositAmount().getAmount() : null,
+                property.getRentPrice() != null ? property.getRentPrice().getCurrency() : "AUD",
+                property.getAvailableFrom(),
+                property.getCreatedAt(),
+                property.getUpdatedAt()
+        );
+    }
 }

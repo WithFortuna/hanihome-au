@@ -1022,7 +1022,7 @@
               "12.2"
             ],
             "details": "FakerDataGenerator 유틸리티 클래스 구현. 한국어 로케일 설정으로 한국 주소, 이름, 전화번호 등 현지화된 데이터 생성. 부동산 관련 특화 데이터(가격 범위, 주소, 면적 등) 생성 메서드 구현. 이메일, URL, 날짜 등 다양한 형태의 유효한 테스트 데이터 생성. 시드값 설정을 통한 재현 가능한 랜덤 데이터 생성 지원.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1034,7 +1034,7 @@
               "12.4"
             ],
             "details": "test-data.sql 스크립트 작성으로 기본 테스트 데이터셋 제공. cleanup-data.sql 스크립트로 테스트 후 데이터 정리. 테스트 클래스별 맞춤 SQL 스크립트 지원. @TestExecutionListeners를 활용한 자동 데이터 초기화/정리 기능. 트랜잭션 롤백과 SQL 스크립트 실행의 조화로운 테스트 환경 구성. 테스트 데이터 일관성 보장을 위한 외래키 제약조건 고려한 순서적 데이터 생성.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           }
         ]
@@ -1269,7 +1269,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-07T00:16:23.523Z",
+      "updated": "2025-08-09T15:02:02.821Z",
       "description": "Tasks for master context"
     }
   }

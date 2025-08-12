@@ -27,12 +27,12 @@ jobs:
           feature/*|bugfix/*|refactor/*|perf/*|test/*|chore/*)
           EVENT_TYPE="kick-next-code"
           # 코드 측 프롬프트
-          PROMPT="/finish-subtasks-half-amount-of 커스텀 명령어를 실행해"
+          PROMPT="/auto-document 커스텀 명령어를 실행해"
           ;;
           docs/*|style/*)
           EVENT_TYPE="kick-next-docs"
           # 문서 측 프롬프트
-          PROMPT="/auto-document 커스텀 명령어를 실행해"
+          PROMPT="/finish-subtasks-half-amount-of 커스텀 명령어를 실행해"
           ;;
           *)
           echo "No matching prefix; skipping."; exit 0

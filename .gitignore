@@ -180,3 +180,4 @@ logs
 # Task files
 # tasks.json
 # tasks/ 
+actions-runner/

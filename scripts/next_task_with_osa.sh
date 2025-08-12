@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORK_DIR="${3:-$HOME}"
-PROMPT="${4:-/finish-subtasks-half-amount-of 커스텀 명령어를 실행해}"
+WORK_DIR="${1:-$HOME}"
+PROMPT="${2:-/finish-subtasks-half-amount-of 커스텀 명령어를 실행해}"
 
 # 작은따옴표/큰따옴표 안전하게 이스케이프
 ESC_PROMPT=$(printf "%s" "$PROMPT" | sed "s/\"/\\\\\"/g")

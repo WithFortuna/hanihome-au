@@ -462,7 +462,7 @@
         "dependencies": [
           5
         ],
-        "status": "done",
+        "status": "review",
         "subtasks": [
           {
             "id": 1,
@@ -647,7 +647,7 @@
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -738,7 +738,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -811,7 +811,7 @@
               "9.5"
             ],
             "details": "거래 완료 이벤트 리스너, 매물 상태 자동 변경 로직, 연관 매물 처리 (같은 건물의 다른 호수), 거래 완료 알림 발송, 매물 검색 인덱스 업데이트, 상태 변경 실패 시 보상 트랜잭션",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -920,7 +920,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-05T16:09:27.378Z",
+      "updated": "2025-08-05T23:06:58.361Z",
       "description": "Tasks for master context"
     }
   }

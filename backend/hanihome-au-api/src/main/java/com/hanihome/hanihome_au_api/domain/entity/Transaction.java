@@ -186,6 +186,11 @@ public class Transaction extends AggregateRoot {
             this.status = TransactionStatus.COMPLETED;
             addActivity(com.hanihome.hanihome_au_api.domain.enums.TransactionActivityType.CONTRACT_COMPLETED, 
                        "Contract fully executed", userId);
+            
+            // Publish transaction completed event for downstream processing
+            addDomainEvent(new com.hanihome.hanihome_au_api.domain.transaction.event.TransactionCompletedEvent(
+                this.id, this.propertyId, this.tenantUserId, this.landlordUserId, 
+                this.agentUserId, this.contractCompletedAt));
         }
         
         this.updatedBy = userId;

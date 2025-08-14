@@ -4,8 +4,12 @@ import io.micrometer.cloudwatch2.CloudWatchConfig;
 import io.micrometer.cloudwatch2.CloudWatchMeterRegistry;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.sentry.Sentry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -13,7 +17,9 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 
+import jakarta.annotation.PostConstruct;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,12 +27,15 @@ import java.util.Map;
  * 
  * 주요 기능:
  * - CloudWatch 메트릭 레지스트리 설정
+ * - Sentry 에러 추적 커스터마이징
  * - 커스텀 메트릭 태그 및 네이밍 설정
  * - 애플리케이션별 메트릭 구성
  */
 @Configuration
 @Profile("!test") // 테스트 환경에서는 비활성화
 public class MonitoringConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(MonitoringConfig.class);
 
     @Value("${spring.application.name:hanihome-au-api}")
     private String applicationName;
@@ -42,6 +51,25 @@ public class MonitoringConfig {
     
     @Value("${spring.profiles.active:dev}")
     private String activeProfile;
+
+    @Value("${sentry.dsn:}")
+    private String sentryDsn;
+
+    @Value("${sentry.environment:development}")
+    private String sentryEnvironment;
+
+    @PostConstruct
+    public void initializeMonitoring() {
+        logger.info("Initializing monitoring for environment: {}", activeProfile);
+        
+        // Sentry 커스터마이징
+        if (sentryDsn != null && !sentryDsn.trim().isEmpty()) {
+            configureSentry();
+            logger.info("Sentry monitoring initialized successfully");
+        } else {
+            logger.warn("Sentry DSN not configured - error tracking disabled");
+        }
+    }
 
     /**
      * CloudWatch 메트릭 레지스트리 구성

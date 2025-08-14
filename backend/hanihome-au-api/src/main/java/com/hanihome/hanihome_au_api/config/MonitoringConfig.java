@@ -136,6 +136,119 @@ public class MonitoringConfig {
     }
 
     /**
+     * Sentry 설정 커스터마이징
+     */
+    private void configureSentry() {
+        Sentry.configureScope(scope -> {
+            // 기본 컨텍스트 정보 설정
+            scope.setTag("environment", sentryEnvironment);
+            scope.setTag("application", applicationName);
+            scope.setTag("region", awsRegion);
+            
+            // 애플리케이션 컨텍스트
+            scope.setContext("application", Map.of(
+                "name", applicationName,
+                "version", System.getProperty("app.version", "unknown"),
+                "environment", sentryEnvironment
+            ));
+            
+            // 서버 정보
+            scope.setContext("server", Map.of(
+                "region", awsRegion,
+                "java_version", System.getProperty("java.version"),
+                "os", System.getProperty("os.name")
+            ));
+        });
+
+        // 커스텀 에러 필터링 및 샘플링
+        Sentry.configureOptions(options -> {
+            // PII 데이터 필터링
+            options.setBeforeSend((event, hint) -> {
+                if (event.getRequest() != null) {
+                    event.getRequest().setData(null);
+                    
+                    if (event.getRequest().getHeaders() != null) {
+                        event.getRequest().getHeaders().remove("authorization");
+                        event.getRequest().getHeaders().remove("cookie");
+                        event.getRequest().getHeaders().remove("x-api-key");
+                    }
+                }
+                
+                // 환경별 에러 레벨 필터링
+                if ("development".equals(sentryEnvironment)) {
+                    return event;
+                } else {
+                    if (event.getLevel() != null && 
+                        (event.getLevel().ordinal() >= io.sentry.SentryLevel.ERROR.ordinal())) {
+                        return event;
+                    }
+                    return null;
+                }
+            });
+            
+            // 성능 모니터링 샘플 레이트 설정
+            if ("production".equals(sentryEnvironment)) {
+                options.setTracesSampleRate(0.05); // 5% 샘플링
+            } else if ("staging".equals(sentryEnvironment)) {
+                options.setTracesSampleRate(0.1);  // 10% 샘플링
+            } else {
+                options.setTracesSampleRate(1.0);  // 개발환경은 100%
+            }
+            
+            options.setRelease(applicationName + "@" + System.getProperty("app.version", "unknown"));
+            options.setFingerprint(List.of("{{ default }}", "{{ error.type }}", "{{ error.value }}"));
+        });
+    }
+
+    /**
+     * Sentry 헬스 체크 지표
+     */
+    @Bean
+    public HealthIndicator sentryHealthIndicator() {
+        return () -> {
+            try {
+                if (sentryDsn != null && !sentryDsn.trim().isEmpty()) {
+                    Sentry.captureMessage("Health check", io.sentry.SentryLevel.DEBUG);
+                    return org.springframework.boot.actuate.health.Health.up()
+                        .withDetail("sentry.environment", sentryEnvironment)
+                        .withDetail("sentry.enabled", true)
+                        .build();
+                } else {
+                    return org.springframework.boot.actuate.health.Health.down()
+                        .withDetail("sentry.enabled", false)
+                        .withDetail("reason", "DSN not configured")
+                        .build();
+                }
+            } catch (Exception e) {
+                return org.springframework.boot.actuate.health.Health.down()
+                    .withDetail("sentry.error", e.getMessage())
+                    .build();
+            }
+        };
+    }
+
+    /**
+     * CloudWatch 헬스 체크 지표
+     */
+    @Bean
+    @Profile({"staging", "production"})
+    public HealthIndicator cloudWatchHealthIndicator() {
+        return () -> {
+            try {
+                return org.springframework.boot.actuate.health.Health.up()
+                    .withDetail("cloudwatch.namespace", cloudwatchNamespace)
+                    .withDetail("cloudwatch.enabled", true)
+                    .withDetail("cloudwatch.region", awsRegion)
+                    .build();
+            } catch (Exception e) {
+                return org.springframework.boot.actuate.health.Health.down()
+                    .withDetail("cloudwatch.error", e.getMessage())
+                    .build();
+            }
+        };
+    }
+
+    /**
      * CloudWatch용 커스텀 네이밍 컨벤션
      */
     private static class CloudWatchNamingConvention implements io.micrometer.core.instrument.config.NamingConvention {

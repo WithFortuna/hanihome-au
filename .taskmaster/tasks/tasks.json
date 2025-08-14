@@ -1115,7 +1115,7 @@
               "13.5"
             ],
             "details": "Entity, Value Object, Domain Service 간의 통합 시나리오 테스트. 복잡한 비즈니스 플로우(매물 등록→검증→이벤트 발행) 전체 검증. JaCoCo를 활용한 코드 커버리지 측정 및 95% 목표 달성. 누락된 테스트 케이스 식별 및 보완. 경계값 테스트, 예외 상황 테스트로 엣지 케이스 커버리지 향상. 테스트 보고서 생성 및 미달성 영역 개선.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -1160,7 +1160,7 @@
               "14.1"
             ],
             "details": "UserRepository의 이메일 기반 사용자 조회와 역할별 사용자 검색 테스트. 사용자 상태 변경 및 프로필 정보 업데이트 검증. NotificationRepository의 사용자별 알림 조회와 읽음 처리 테스트. 알림 타입별 필터링과 페이징 처리 검증.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
@@ -1269,7 +1269,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-14T06:23:35.263Z",
+      "updated": "2025-08-14T17:41:56.467Z",
       "description": "Tasks for master context"
     }
   }

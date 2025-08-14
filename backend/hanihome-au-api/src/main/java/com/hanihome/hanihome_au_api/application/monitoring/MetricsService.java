@@ -319,6 +319,124 @@ public class MetricsService {
     }
     
     /**
+     * 리뷰 작성률 메트릭 계산 및 기록
+     */
+    public void calculateAndRecordReviewRate() {
+        try {
+            // 최근 24시간 내 거래 완료 건수 대비 리뷰 작성 비율
+            // 실제 구현에서는 Repository에서 데이터를 가져와야 함
+            double reviewSubmissionRate = calculateReviewSubmissionRate();
+            
+            setCustomGauge(
+                "hanihome.review.submission.rate",
+                "Review submission rate (percentage)",
+                reviewSubmissionRate,
+                "period", "24h"
+            );
+            
+            logger.debug("Review submission rate recorded: {}%", reviewSubmissionRate);
+        } catch (Exception e) {
+            logger.error("Failed to calculate review submission rate", e);
+        }
+    }
+    
+    /**
+     * 신고 처리율 메트릭 계산 및 기록
+     */
+    public void calculateAndRecordReportProcessingRate() {
+        try {
+            // 최근 24시간 내 신고 접수 대비 처리 완료 비율
+            // 실제 구현에서는 Repository에서 데이터를 가져와야 함
+            double reportProcessingRate = calculateReportProcessingRate();
+            
+            setCustomGauge(
+                "hanihome.report.processing.rate",
+                "Report processing rate (percentage)",
+                reportProcessingRate,
+                "period", "24h"
+            );
+            
+            logger.debug("Report processing rate recorded: {}%", reportProcessingRate);
+        } catch (Exception e) {
+            logger.error("Failed to calculate report processing rate", e);
+        }
+    }
+    
+    /**
+     * 대시보드 성능 메트릭 기록
+     */
+    public void recordDashboardMetrics(String dashboardType, long loadTimeMs, int dataPoints) {
+        // 대시보드 로딩 시간
+        recordDuration(
+            "hanihome.dashboard.load.time",
+            java.time.Duration.ofMillis(loadTimeMs),
+            "dashboard.type", dashboardType,
+            "data.points.range", getDataPointsRange(dataPoints)
+        );
+        
+        // 대시보드 데이터 포인트 수
+        setCustomGauge(
+            "hanihome.dashboard.data.points",
+            "Number of data points in dashboard",
+            dataPoints,
+            "dashboard.type", dashboardType
+        );
+        
+        logger.debug("Dashboard metrics recorded: type={}, loadTime={}ms, dataPoints={}", 
+                   dashboardType, loadTimeMs, dataPoints);
+    }
+    
+    /**
+     * 리뷰 품질 지표 기록
+     */
+    public void recordReviewQualityMetrics(int spamDetected, int trustScoreUpdates, double avgTrustScore) {
+        // 스팸 리뷰 탐지 수
+        incrementCustomCounter(
+            "hanihome.review.spam.detected",
+            "Number of spam reviews detected",
+            "detection.method", "automatic"
+        );
+        
+        // 신뢰도 점수 업데이트
+        incrementCustomCounter(
+            "hanihome.review.trust.score.updates",
+            "Number of trust score updates",
+            "update.type", "automatic"
+        );
+        
+        // 평균 신뢰도 점수
+        setCustomGauge(
+            "hanihome.review.trust.score.average",
+            "Average trust score of reviews",
+            avgTrustScore
+        );
+        
+        logger.debug("Review quality metrics recorded: spam={}, trustUpdates={}, avgTrust={}", 
+                   spamDetected, trustScoreUpdates, avgTrustScore);
+    }
+    
+    // === 프라이빗 헬퍼 메서드들 ===
+    
+    private double calculateReviewSubmissionRate() {
+        // TODO: 실제 구현에서는 TransactionService와 ReviewService에서 데이터를 가져와야 함
+        // 임시로 랜덤 값 반환 (테스트용)
+        return Math.random() * 100;
+    }
+    
+    private double calculateReportProcessingRate() {
+        // TODO: 실제 구현에서는 ReportService에서 데이터를 가져와야 함
+        // 임시로 랜덤 값 반환 (테스트용)
+        return Math.random() * 100;
+    }
+    
+    private String getDataPointsRange(int dataPoints) {
+        if (dataPoints < 100) return "small";
+        if (dataPoints < 1000) return "medium";
+        if (dataPoints < 10000) return "large";
+        return "very_large";
+    }
+
+    /**
      * 현재 메트릭 상태 로깅 (디버그용)
      */
     public void logCurrentMetrics() {

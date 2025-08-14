@@ -40,11 +40,13 @@ public class MonitoringController {
     private static final Logger logger = LoggerFactory.getLogger(MonitoringController.class);
     
     private final MetricsService metricsService;
+    private final CloudWatchAlarmService cloudWatchAlarmService;
     private final Random random = new Random();
 
     @Autowired
-    public MonitoringController(MetricsService metricsService) {
+    public MonitoringController(MetricsService metricsService, CloudWatchAlarmService cloudWatchAlarmService) {
         this.metricsService = metricsService;
+        this.cloudWatchAlarmService = cloudWatchAlarmService;
     }
 
     /**

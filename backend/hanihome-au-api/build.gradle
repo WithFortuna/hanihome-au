@@ -73,6 +73,9 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.12.1'
 	implementation 'software.amazon.awssdk:cloudwatch:2.21.29'
 	
+	// AWS SNS
+	implementation 'software.amazon.awssdk:sns:2.21.29'
+	
 	// Sentry integration
 	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.2.0'
 	implementation 'io.sentry:sentry-logback:7.2.0'

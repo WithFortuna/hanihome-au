@@ -479,4 +479,13 @@ public class MonitoringController {
         String accessKey = System.getenv("AWS_ACCESS_KEY_ID");
         return region != null && accessKey != null;
     }
+    
+    private boolean isAlarmServiceEnabled() {
+        // 알람 서비스 활성화 여부 확인
+        try {
+            return cloudWatchAlarmService != null;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

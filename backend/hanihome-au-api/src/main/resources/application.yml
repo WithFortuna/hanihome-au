@@ -146,6 +146,9 @@ aws:
     bucket-assets: ${AWS_S3_BUCKET_ASSETS:hanihome-au-assets-dev}
     bucket-backups: ${AWS_S3_BUCKET_BACKUPS:hanihome-au-backups-dev} 
     bucket-logs: ${AWS_S3_BUCKET_LOGS:hanihome-au-logs-dev}
+  cloudwatch:
+    sns-topic-arn: ${AWS_CLOUDWATCH_SNS_TOPIC_ARN:}
+    alarm-prefix: ${AWS_CLOUDWATCH_ALARM_PREFIX:HaniHome}
 
 
 # CORS Configuration

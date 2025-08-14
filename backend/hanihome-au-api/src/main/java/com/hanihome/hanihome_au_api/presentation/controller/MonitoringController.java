@@ -258,6 +258,124 @@ public class MonitoringController {
     }
 
     /**
+     * CloudWatch 알람 상태 확인
+     */
+    @GetMapping("/alarms")
+    @Operation(summary = "CloudWatch 알람 상태 조회", description = "현재 설정된 CloudWatch 알람들의 상태를 조회합니다.")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getAlarmStatus() {
+        
+        try {
+            Map<String, String> alarmStates = cloudWatchAlarmService.getAlarmStates();
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "alarm_count", alarmStates.size(),
+                "alarms", alarmStates,
+                "timestamp", System.currentTimeMillis()
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error retrieving alarm status", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", "Failed to retrieve alarm status: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 커스텀 알람 생성 테스트
+     */
+    @PostMapping("/test/alarms")
+    @Operation(summary = "커스텀 알람 생성 테스트", description = "테스트용 커스텀 알람을 생성합니다.")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> createTestAlarm(
+            @Parameter(description = "알람 이름") 
+            @RequestParam String name,
+            @Parameter(description = "메트릭 이름")
+            @RequestParam String metricName,
+            @Parameter(description = "임계값")
+            @RequestParam double threshold) {
+        
+        try {
+            cloudWatchAlarmService.createCustomAlarm(
+                name, 
+                metricName, 
+                threshold, 
+                software.amazon.awssdk.services.cloudwatch.model.ComparisonOperator.GREATER_THAN_THRESHOLD,
+                2
+            );
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Test alarm created successfully",
+                "alarm_name", name,
+                "metric_name", metricName,
+                "threshold", threshold
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error creating test alarm", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", "Failed to create test alarm: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * 커스텀 메트릭 업데이트 테스트
+     */
+    @PostMapping("/test/custom-metrics")
+    @Operation(summary = "커스텀 메트릭 업데이트", description = "리뷰 작성률 및 신고 처리율 등 커스텀 메트릭을 업데이트합니다.")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> updateCustomMetrics() {
+        
+        try {
+            logger.info("Updating custom metrics manually");
+            
+            // 리뷰 작성률 및 신고 처리율 업데이트
+            metricsService.calculateAndRecordReviewRate();
+            metricsService.calculateAndRecordReportProcessingRate();
+            
+            // 리뷰 품질 메트릭 업데이트 (테스트 데이터)
+            int spamDetected = random.nextInt(5);
+            int trustScoreUpdates = random.nextInt(20) + 10;
+            double avgTrustScore = random.nextDouble() * 20 + 80;
+            
+            metricsService.recordReviewQualityMetrics(spamDetected, trustScoreUpdates, avgTrustScore);
+            
+            // 대시보드 성능 메트릭 테스트
+            metricsService.recordDashboardMetrics("admin", 
+                random.nextLong(3000) + 500, 
+                random.nextInt(5000) + 100);
+            
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "Custom metrics updated successfully",
+                "metrics_updated", Map.of(
+                    "review_rate", "calculated",
+                    "report_processing_rate", "calculated", 
+                    "review_quality", Map.of(
+                        "spam_detected", spamDetected,
+                        "trust_score_updates", trustScoreUpdates,
+                        "avg_trust_score", avgTrustScore
+                    ),
+                    "dashboard_performance", "recorded"
+                )
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error updating custom metrics", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                "status", "error",
+                "message", "Failed to update custom metrics: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
      * 모니터링 상태 확인
      */
     @GetMapping("/status")
@@ -269,6 +387,7 @@ public class MonitoringController {
             "metrics_service", "active",
             "sentry_enabled", isSentryConfigured(),
             "cloudwatch_enabled", isCloudWatchConfigured(),
+            "alarm_service_enabled", isAlarmServiceEnabled(),
             "timestamp", System.currentTimeMillis(),
             "jvm", Map.of(
                 "memory_used_mb", (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024,

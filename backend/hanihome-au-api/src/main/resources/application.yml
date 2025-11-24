@@ -122,6 +122,14 @@ management:
     export:
       prometheus:
         enabled: true
+      cloudwatch:
+        enabled: ${CLOUDWATCH_METRICS_ENABLED:false}
+        namespace: ${CLOUDWATCH_NAMESPACE:HaniHome/AU/Dev}
+        step: ${CLOUDWATCH_STEP:PT1M}
+        batch-size: ${CLOUDWATCH_BATCH_SIZE:20}
+  health:
+    sentry:
+      enabled: true
 
 # JWT Configuration
 jwt:
@@ -138,6 +146,9 @@ aws:
     bucket-assets: ${AWS_S3_BUCKET_ASSETS:hanihome-au-assets-dev}
     bucket-backups: ${AWS_S3_BUCKET_BACKUPS:hanihome-au-backups-dev} 
     bucket-logs: ${AWS_S3_BUCKET_LOGS:hanihome-au-logs-dev}
+  cloudwatch:
+    sns-topic-arn: ${AWS_CLOUDWATCH_SNS_TOPIC_ARN:}
+    alarm-prefix: ${AWS_CLOUDWATCH_ALARM_PREFIX:HaniHome}
 
 
 # CORS Configuration
@@ -165,6 +176,21 @@ app:
     from-name: ${MAIL_FROM_NAME:HaniHome Australia}
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
+  version: ${APP_VERSION:1.0.0-SNAPSHOT}
+
+# Sentry Configuration
+sentry:
+  dsn: ${SENTRY_DSN:}
+  sample-rate: ${SENTRY_SAMPLE_RATE:1.0}
+  traces-sample-rate: ${SENTRY_TRACES_SAMPLE_RATE:0.1}
+  release: ${SENTRY_RELEASE:${app.version}}
+  environment: ${SENTRY_ENVIRONMENT:development}
+  server-name: ${spring.application.name}
+  in-app-includes:
+    - com.hanihome
+  ignored-exceptions-for-type:
+    - java.lang.SecurityException
+    - org.springframework.security.access.AccessDeniedException
 
 # Logging Configuration
 logging:
@@ -252,6 +278,13 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+  metrics:
+    export:
+      cloudwatch:
+        enabled: ${CLOUDWATCH_METRICS_ENABLED:true}
+        namespace: HaniHome/AU/Staging
+        step: PT1M
+        batch-size: 20
 
 ---
 # Production Profile
@@ -301,7 +334,11 @@ management:
     export:
       cloudwatch:
         enabled: true
-        namespace: HaniHomeAU/Production
+        namespace: HaniHome/AU/Production
+        step: PT1M
+        batch-size: 20
+      prometheus:
+        enabled: false
 
 # Production Server Configuration
 server:

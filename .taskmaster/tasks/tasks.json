@@ -901,7 +901,7 @@
               "10.6"
             ],
             "details": "Spring Boot Actuator를 통한 CloudWatch 메트릭 전송 설정. 커스텀 메트릭 (리뷰 작성률, 신고 처리율) 생성. Sentry SDK 통합 및 에러 추적 설정. 알림 임계값 설정 및 SNS 연동. 대시보드 성능 모니터링 및 로그 수집.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -912,7 +912,7 @@
               "10.7"
             ],
             "details": "사용자 행동 분석 리포트 생성. 매물 성과 분석 및 추천 시스템 데이터 준비. 리뷰 트렌드 분석 및 품질 지표 계산. 데이터베이스 쿼리 최적화 및 캐싱 전략 적용. 배치 처리를 통한 정기 리포트 생성 자동화.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -925,7 +925,7 @@
         "testStrategy": "설정된 프로파일별로 스프링 컨텍스트가 정상 로드되는지 검증. 각 프로파일에서 데이터베이스 연결이 올바르게 작동하는지 확인하는 간단한 통합 테스트 작성.",
         "priority": "high",
         "dependencies": [],
-        "status": "review",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1034,7 +1034,7 @@
               "12.4"
             ],
             "details": "test-data.sql 스크립트 작성으로 기본 테스트 데이터셋 제공. cleanup-data.sql 스크립트로 테스트 후 데이터 정리. 테스트 클래스별 맞춤 SQL 스크립트 지원. @TestExecutionListeners를 활용한 자동 데이터 초기화/정리 기능. 트랜잭션 롤백과 SQL 스크립트 실행의 조화로운 테스트 환경 구성. 테스트 데이터 일관성 보장을 위한 외래키 제약조건 고려한 순서적 데이터 생성.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -1057,7 +1057,7 @@
             "description": "Property 엔티티의 생성자, 상태 변경 메서드, 도메인 이벤트 발행 로직을 포괄적으로 테스트합니다.",
             "dependencies": [],
             "details": "Property 엔티티의 생성, 수정, 삭제 시나리오 테스트. 매물 상태 변경(활성/비활성/거래완료) 메서드 검증. 도메인 이벤트(PropertyCreated, PropertyStatusChanged) 발행 로직 테스트. 유효하지 않은 데이터로 Property 생성 시 예외 발생 검증. @DisplayName으로 한국어 테스트 설명 제공. @Nested 클래스로 생성자/상태변경/이벤트 그룹 분리. AAA 패턴 적용한 명확한 테스트 구조 구성.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1066,7 +1066,7 @@
             "description": "User 엔티티의 비즈니스 로직과 도메인 이벤트 발행을 검증하는 단위 테스트를 구현합니다.",
             "dependencies": [],
             "details": "User 엔티티 생성자 및 필드 검증 로직 테스트. 사용자 정보 업데이트 메서드(updateProfile, changePassword) 검증. 계정 활성화/비활성화 상태 변경 로직 테스트. 도메인 이벤트(UserRegistered, UserProfileUpdated) 발행 검증. 이메일 중복 체크 및 패스워드 암호화 로직 테스트. 경계값 테스트(닉네임 길이, 이메일 형식) 및 예외 상황 처리 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1075,7 +1075,7 @@
             "description": "Money, Address, PhoneNumber 등 Value Object의 불변성과 유효성 검증을 테스트합니다.",
             "dependencies": [],
             "details": "Money Value Object의 값 동등성(equals/hashCode) 및 불변성 테스트. Address의 주소 유효성 검증 및 정규화 로직 테스트. PhoneNumber 형식 검증 및 국제번호 변환 테스트. Value Object 생성 시 유효하지 않은 값에 대한 예외 발생 검증. 경계값 테스트(음수 금액, 빈 주소, 잘못된 전화번호 형식). toString(), compareTo() 등 유틸리티 메서드 정확성 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1088,7 +1088,7 @@
               "13.3"
             ],
             "details": "PropertyManagementService의 매물 등록 규칙, 가격 계산, 상태 변경 로직 테스트. UserManagementService의 사용자 등급 산정, 신뢰도 계산 비즈니스 로직 검증. 서비스 간 협업이 필요한 복잡한 비즈니스 규칙(예: 매물 등록 시 사용자 권한 검증) 테스트. Mock 객체를 활용한 Repository 의존성 격리. 예외 상황에서의 적절한 도메인 예외 발생 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1100,7 +1100,7 @@
               "13.2"
             ],
             "details": "ApplicationEventPublisher를 통한 도메인 이벤트 발행 검증. PropertyCreated, UserRegistered 등 핵심 도메인 이벤트 발생 시점 및 데이터 정확성 테스트. 이벤트 핸들러에서의 적절한 처리 로직 검증. 트랜잭션 경계 내에서 이벤트 발행 및 처리 순서 검증. 이벤트 발행 실패 시 롤백 메커니즘 테스트. @EventListener 어노테이션 기반 이벤트 처리 테스트.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1115,7 +1115,7 @@
               "13.5"
             ],
             "details": "Entity, Value Object, Domain Service 간의 통합 시나리오 테스트. 복잡한 비즈니스 플로우(매물 등록→검증→이벤트 발행) 전체 검증. JaCoCo를 활용한 코드 커버리지 측정 및 95% 목표 달성. 누락된 테스트 케이스 식별 및 보완. 경계값 테스트, 예외 상황 테스트로 엣지 케이스 커버리지 향상. 테스트 보고서 생성 및 미달성 영역 개선.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -1130,7 +1130,7 @@
         "dependencies": [
           13
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -1138,7 +1138,7 @@
             "description": "PostgreSQL Testcontainers 설정과 테스트 인프라스트럭처 구현",
             "dependencies": [],
             "details": "TestContainers PostgreSQL 컨테이너 설정 및 @TestConfiguration 클래스 구현. application-test.yml에서 데이터베이스 연결 설정. @DataJpaTest와 @Testcontainers 어노테이션을 활용한 테스트 클래스 기본 구조 생성. 테스트 격리를 위한 @Transactional 및 @Rollback 설정 적용.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1149,7 +1149,7 @@
               "14.1"
             ],
             "details": "Property 엔티티 저장, 조회, 업데이트, 삭제 기본 CRUD 테스트. PropertyStatus별 조회 테스트와 매물 검색 필터링 쿼리 검증. 가격 범위, 지역별, 매물 유형별 조회 메서드 정확성 테스트. 페이징 처리된 매물 목록 조회와 정렬 옵션 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1160,7 +1160,7 @@
               "14.1"
             ],
             "details": "UserRepository의 이메일 기반 사용자 조회와 역할별 사용자 검색 테스트. 사용자 상태 변경 및 프로필 정보 업데이트 검증. NotificationRepository의 사용자별 알림 조회와 읽음 처리 테스트. 알림 타입별 필터링과 페이징 처리 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1172,7 +1172,7 @@
               "14.3"
             ],
             "details": "매물 검색을 위한 다중 조건 동적 쿼리 테스트 (가격, 지역, 옵션 조합). Property-User 간 조인 쿼리로 임대인 정보와 함께 매물 조회 검증. Projection을 활용한 DTO 변환 쿼리 테스트. 집계 함수를 활용한 통계 쿼리 (지역별 평균 가격, 매물 수) 검증.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -1183,7 +1183,7 @@
               "14.4"
             ],
             "details": "유니크 제약조건 위반 시 적절한 예외 발생 검증 (이메일 중복 등). 외래키 제약조건 위반 시나리오 테스트. 대량 데이터 삽입 후 페이징 쿼리 성능 측정. 인덱스 효과 검증을 위한 쿼리 실행 시간 비교. 트랜잭션 격리 수준에 따른 동시성 테스트.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -1269,7 +1269,7 @@
     ],
     "metadata": {
       "created": "2025-07-29T15:38:34.302Z",
-      "updated": "2025-08-09T15:02:02.821Z",
+      "updated": "2025-08-18T10:09:14.295Z",
       "description": "Tasks for master context"
     }
   }

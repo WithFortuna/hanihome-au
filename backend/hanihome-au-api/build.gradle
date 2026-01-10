@@ -68,6 +68,15 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	
+	// Monitoring and Observability
+	// Micrometer CloudWatch
+	implementation 'io.micrometer:micrometer-registry-cloudwatch2:1.12.1'
+	implementation 'software.amazon.awssdk:cloudwatch:2.21.29'
+	
+	// Sentry integration
+	implementation 'io.sentry:sentry-spring-boot-starter-jakarta:7.2.0'
+	implementation 'io.sentry:sentry-logback:7.2.0'
+	
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
